@@ -58,6 +58,10 @@ class Controller
             $data = $this->getData($data['@odata.nextLink'], $tokenType, $accessToken);
         }
 
+        $event = new UserDataEvent($data['value']);
+
+        $this->eventDispatcher->dispatch($event);
+
         $commitEvent = new CommitEvent();
         $this->eventDispatcher->dispatch($commitEvent);
     }
