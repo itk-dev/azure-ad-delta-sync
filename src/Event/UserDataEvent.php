@@ -6,7 +6,7 @@ namespace ItkDev\Adgangsstyring\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-class ItkDevAccessControlEvent extends Event
+class UserDataEvent extends Event
 {
     private $data;
 

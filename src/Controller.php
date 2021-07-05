@@ -3,7 +3,9 @@
 namespace ItkDev\Adgangsstyring;
 
 use GuzzleHttp\Client;
-use ItkDev\Adgangsstyring\Event\ItkDevAccessControlEvent;
+use ItkDev\Adgangsstyring\Event\CommitEvent;
+use ItkDev\Adgangsstyring\Event\StartEvent;
+use ItkDev\Adgangsstyring\Event\UserDataEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Controller
@@ -42,18 +44,22 @@ class Controller
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
+        $startEvent = new StartEvent();
+        $this->eventDispatcher->dispatch($startEvent);
+
         $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
         while (array_key_exists('@odata.nextLink', $data)){
             // Fjern slettemarkering på disse brugere
-            // Dvs send event
-            $event = new ItkDevAccessControlEvent($data['value']);
+            $event = new UserDataEvent($data['value']);
 
             $this->eventDispatcher->dispatch($event);
 
             $data = $this->getData($data['@odata.nextLink'], $tokenType, $accessToken);
-            var_dump(count($data['value']));
         }
+
+        $commitEvent = new CommitEvent();
+        $this->eventDispatcher->dispatch($commitEvent);
     }
 
     private function getData(string $url, string $tokenType, string $accessToken)
