@@ -29,12 +29,12 @@ class Controller
     public function run()
     {
         $this->client = new Client();
-        $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/token?api-version=1.0';
+        $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
         $token = json_decode($this->client->post($url, [
             'form_params' => [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
-                'resource' => 'https://graph.microsoft.com/',
+                'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
         ])->getBody()->getContents());
