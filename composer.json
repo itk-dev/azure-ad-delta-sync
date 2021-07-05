@@ -1,0 +1,24 @@
+{
+    "name": "itkdev/adgangsstyring",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jekuaitk",
+            "email": "jekua@aarhus.dk"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ItkDev\\Adgangsstyring\\": "src/"
+        }
+    },
+    "require": {
+        "microsoft/microsoft-graph": "^1.34",
+      "ext-json": "*",
+        "symfony/event-dispatcher": "^5.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}
