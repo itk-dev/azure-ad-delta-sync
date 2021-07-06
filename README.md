@@ -26,7 +26,7 @@ To install this library directly run
 composer require itkdev/adgangsstyring
 ```
 
-#### Example usage
+### Example usage
 
 When an instance of `Controller` is created it is configured
 with a Symfony `EventDispatcher` and an array of `$options`.
@@ -53,7 +53,7 @@ The flow is then started as follows:
 $controller->run();
 ```
 
-#### Flow
+### Flow
 
 The package will send out Symfony events which an implementation
 should then listen to.
@@ -75,6 +75,7 @@ currently are assigned the group in question.
 ### Check Coding Standard
 
 * PHP files (PHP_CodeSniffer)
+
 ```shell
 composer check-coding-standards
 ```
