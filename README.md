@@ -74,6 +74,11 @@ currently are assigned the group in question.
 
 ### Check Coding Standard
 
+* PHP files (PHP_CodeSniffer)
+```shell
+composer check-coding-standards
+```
+
 ### Apply Coding Standards
 
 ## Versioning
