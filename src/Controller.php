@@ -39,7 +39,7 @@ class Controller
             ],
         ])->getBody()->getContents());
 
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/'.$this->groupId.'/members';
+        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->groupId . '/members';
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
@@ -49,7 +49,7 @@ class Controller
 
         $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
-        while (array_key_exists('@odata.nextLink', $data)){
+        while (array_key_exists('@odata.nextLink', $data)) {
             // Fjern slettemarkering på disse brugere
             $event = new UserDataEvent($data['value']);
 
@@ -70,7 +70,7 @@ class Controller
     {
         $response = $this->client->get($url, [
             'headers' => [
-                'authorization' => $tokenType.' '.$accessToken,
+                'authorization' => $tokenType . ' ' . $accessToken,
             ],
         ]);
 
