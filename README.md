@@ -78,6 +78,10 @@ currently are assigned the group in question.
 
 ## Versioning
 
+We use [SemVer](http://semver.org/) for versioning.
+For the versions available, see the
+[tags on this repository](https://github.com/itk-dev/adgangsstyring/tags).
+
 ## License
 
 This project is licensed under the MIT License - see the
