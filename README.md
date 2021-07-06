@@ -80,6 +80,13 @@ currently are assigned the group in question.
 composer check-coding-standards
 ```
 
+* Markdown files (markdownlint standard rules)
+
+```shell
+yarn install
+yarn check-coding-standards
+```
+
 ### Apply Coding Standards
 
 ## Versioning
