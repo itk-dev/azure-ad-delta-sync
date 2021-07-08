@@ -28,6 +28,7 @@ class Controller
 
     public function run()
     {
+        // Set up http client for acquiring access token and token type
         $this->client = new Client();
         $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
         $token = json_decode($this->client->post($url, [
@@ -39,29 +40,25 @@ class Controller
             ],
         ])->getBody()->getContents());
 
+        // Construct microsoft graph url for group
         $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->groupId . '/members';
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
+        // Send start event
         $startEvent = new StartEvent();
         $this->eventDispatcher->dispatch($startEvent);
 
-        $data = $this->getData($groupUrl, $tokenType, $accessToken);
-
-        while (array_key_exists('@odata.nextLink', $data)) {
-            // Fjern slettemarkering på disse brugere
+        // Send user data events as long as next link exists
+        while (null !== $groupUrl) {
+            $data = $this->getData($groupUrl, $tokenType, $accessToken);
             $event = new UserDataEvent($data['value']);
-
             $this->eventDispatcher->dispatch($event);
-
-            $data = $this->getData($data['@odata.nextLink'], $tokenType, $accessToken);
+            $groupUrl = $data['@odata.nextLink'] ?? null;
         }
 
-        $event = new UserDataEvent($data['value']);
-
-        $this->eventDispatcher->dispatch($event);
-
+        // Send commit event indicating no more user data events coming
         $commitEvent = new CommitEvent();
         $this->eventDispatcher->dispatch($commitEvent);
     }
