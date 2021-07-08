@@ -7,6 +7,7 @@ use ItkDev\Adgangsstyring\Event\CommitEvent;
 use ItkDev\Adgangsstyring\Event\StartEvent;
 use ItkDev\Adgangsstyring\Event\UserDataEvent;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
 {
@@ -21,6 +22,10 @@ class Controller
     {
         $this->client = $client;
         $this->eventDispatcher = $eventDispatcher;
+
+        $resolver = new OptionsResolver();
+        $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
+        $resolver->resolve($options);
         $this->tenantId = $options['tenantId'];
         $this->clientId = $options['clientId'];
         $this->clientSecret = $options['clientSecret'];
