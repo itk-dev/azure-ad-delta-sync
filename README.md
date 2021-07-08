@@ -26,33 +26,6 @@ To install this library directly run
 composer require itkdev/adgangsstyring
 ```
 
-### Example usage
-
-When an instance of `Controller` is created it is configured
-with a Symfony `EventDispatcher` and an array of `$options`.
-
-```php
-use ItkDev\Adgangsstyring\Controller;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-
-$options = [
-  'tenantId' => 'something.onmicrosoft.com', // Tenant id 
-  'clientId' => 'client_id', // Client id assigned by authorizer
-  'clientSecret' => 'client_secret', // Client password assigned by authorizer
-  'groupId' => 'group_id', // Group id provided by authorizer
-];
-
-$eventDispatcher = new EventDispatcher();
-
-$controller = new Controller($eventDispatcher, $options);
-```
-
-The flow is then started as follows:
-
-```php
-$controller->run();
-```
-
 ### Flow
 
 The package will send out Symfony events which an implementation
@@ -66,7 +39,40 @@ and you may proceed your synchronization logic.
 
 Note that this package does not do the synchronization
 of users, instead it provides a list of all users that
-currently are assigned the group in question.
+currently are assigned to the group in question.
+
+### Example usage
+
+When an instance of `Controller` is created it is configured
+with a Symfony `EventDispatcher` and an array of `$options`.
+
+In order to handle the events sent by the `Controller` one
+should implement some listener or subscriber.
+
+```php
+use ItkDev\Adgangsstyring\Controller;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+$options = [
+  'tenantId' => 'something.onmicrosoft.com', // Tenant id 
+  'clientId' => 'client_id', // Client id assigned by authorizer
+  'clientSecret' => 'client_secret', // Client password assigned by authorizer
+  'groupId' => 'group_id', // Group id provided by authorizer
+];
+
+$eventSubscriber = new SomeEventSubscriber();
+
+$eventDispatcher = new EventDispatcher();
+$eventDispatcher->addSubscriber($eventSubscriber);
+
+$controller = new Controller($eventDispatcher, $options);
+```
+
+The flow is then started as follows:
+
+```php
+$controller->run();
+```
 
 ## Development Setup
 
