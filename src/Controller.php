@@ -17,8 +17,9 @@ class Controller
     private $client;
     private $eventDispatcher;
 
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $options)
+    public function __construct(EventDispatcherInterface $eventDispatcher, array $options, Client $client)
     {
+        $this->client = $client;
         $this->eventDispatcher = $eventDispatcher;
         $this->tenantId = $options['tenantId'];
         $this->clientId = $options['clientId'];
@@ -28,9 +29,9 @@ class Controller
 
     public function run()
     {
-        // Set up http client for acquiring access token and token type
-        $this->client = new Client();
+        // Acquiring access token and token type
         $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
+
         $token = json_decode($this->client->post($url, [
             'form_params' => [
                 'client_id' => $this->clientId,
