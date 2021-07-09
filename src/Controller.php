@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\RequestException;
 use ItkDev\Adgangsstyring\Event\CommitEvent;
 use ItkDev\Adgangsstyring\Event\StartEvent;
 use ItkDev\Adgangsstyring\Event\UserDataEvent;
+use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -35,7 +36,7 @@ class Controller
     }
 
     /**
-     * @throws TokenException
+     * @throws TokenException|DataException
      */
     public function run()
     {
@@ -52,7 +53,7 @@ class Controller
                 ],
             ]);
         } catch (RequestException $e) {
-            throw new TokenException($e->getMessage());
+            throw new TokenException('Cannot get token.', $e->getCode(), $e);
         }
 
 
@@ -91,7 +92,7 @@ class Controller
     }
 
     /**
-     * @throws TokenException
+     * @throws DataException
      */
     private function getData(string $url, string $tokenType, string $accessToken)
     {
@@ -102,7 +103,7 @@ class Controller
                 ],
             ]);
         } catch (RequestException $e) {
-            throw new TokenException($e->getMessage());
+            throw new DataException('Cannot get users.', $e->getCode(), $e);
         }
 
         return json_decode($response->getBody()->getContents(), true);
