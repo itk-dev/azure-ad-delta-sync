@@ -3,6 +3,7 @@
 namespace ItkDev\Adgangsstyring\Tests;
 
 use ItkDev\Adgangsstyring\Controller;
+use ItkDev\Adgangsstyring\Exception\TokenException;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
@@ -159,9 +160,9 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() function.
      *
-     * Ensure the function loops while group url contain a next link
+     * Ensure the function does not send two UserDataEvents when theres no users on second list
      */
-    public function testRun2()
+    public function testRunNoUsersOnSecondList()
     {
         // Mock options for the Controller
         $mockOptions = [
@@ -287,6 +288,53 @@ class ControllerTest extends TestCase
             ->willReturnOnConsecutiveCalls($mockStringResponseGetOne, $mockStringResponseGetTwo);
 
         // Call the run function on Controller
+        $controller->run();
+    }
+
+    public function testRunWrongTenantId()
+    {
+        // Expect TokenException to be thrown
+        $this->expectException(TokenException::class);
+
+        // Mock options for the Controller
+        $mockOptions = [
+            'tenantId' => 'mock_wrong_tenant_id',
+            'clientId' => 'mock_client_id',
+            'clientSecret' => 'mock_client_secret',
+            'groupId' => 'mock_group_id',
+        ];
+
+        // Mock EventDispatcher for the Controller
+        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
+
+        // Mock Client for the Controller
+        // Add post method
+        $mockClientBuilder = $this->getMockBuilder(Client::class)
+            ->addMethods(['post']);
+
+        $mockClient = $mockClientBuilder->getMock();
+
+        // Create Controller
+        $controller = new Controller($mockEventDispatcher, $mockOptions, $mockClient);
+
+        // Mock arguments for post call on client
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+
+        $mockClientPostOptions = [
+            'form_params' => [
+                'client_id' => $mockOptions['clientId'],
+                'client_secret' => $mockOptions['clientSecret'],
+                'scope' => 'https://graph.microsoft.com/.default',
+                'grant_type' => 'client_credentials',
+            ],
+        ];
+
+        $mockClient
+            ->expects($this->once())
+            ->method('post')
+            ->with($mockUrl, $mockClientPostOptions)
+            ->willThrowException(new TokenException('TokenException'));
+
         $controller->run();
     }
 }
