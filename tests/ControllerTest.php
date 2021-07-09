@@ -45,7 +45,7 @@ class ControllerTest extends TestCase
         $mockClient = $mockClientBuilder->getMock();
 
         // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockOptions, $mockClient);
+        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
         $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
@@ -190,7 +190,7 @@ class ControllerTest extends TestCase
         $mockClient = $mockClientBuilder->getMock();
 
         // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockOptions, $mockClient);
+        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
         $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
@@ -316,7 +316,7 @@ class ControllerTest extends TestCase
         $mockClient = $mockClientBuilder->getMock();
 
         // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockOptions, $mockClient);
+        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
         $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
@@ -369,7 +369,7 @@ class ControllerTest extends TestCase
         $mockClient = $mockClientBuilder->getMock();
 
         // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockOptions, $mockClient);
+        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
         $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
