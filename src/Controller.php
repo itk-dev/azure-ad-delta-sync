@@ -46,13 +46,13 @@ class Controller
     public function run()
     {
         // Acquiring access token and token type
-        $url = 'https://login.microsoftonline.com/' . $this->options['tenantId'] . '/oauth2/v2.0/token';
+        $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
 
         try {
             $postResponse = $this->client->post($url, [
                 'form_params' => [
-                    'client_id' => $this->options['clientId'],
-                    'client_secret' => $this->options['clientSecret'],
+                    'client_id' => $this->options['client_id'],
+                    'client_secret' => $this->options['client_secret'],
                     'scope' => 'https://graph.microsoft.com/.default',
                     'grant_type' => 'client_credentials',
                 ],
@@ -64,7 +64,7 @@ class Controller
         $token = json_decode($postResponse->getBody()->getContents());
 
         // Construct group url for microsoft graph
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['groupId'] . '/members';
+        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['group_id'] . '/members';
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
@@ -132,6 +132,6 @@ class Controller
      */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
+        $resolver->setRequired(['tenant_id', 'client_id', 'client_secret', 'group_id']);
     }
 }

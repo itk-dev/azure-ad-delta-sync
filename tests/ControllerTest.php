@@ -22,10 +22,10 @@ class ControllerTest extends TestCase
     {
         // Mock options for the Controller
         $mockOptions = [
-            'tenantId' => 'mock_tenant_id',
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_client_secret',
-            'groupId' => 'mock_group_id',
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
         ];
 
         // Mock EventDispatcher for the Controller
@@ -48,12 +48,12 @@ class ControllerTest extends TestCase
         $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $mockClientPostOptions = [
             'form_params' => [
-                'client_id' => $mockOptions['clientId'],
-                'client_secret' => $mockOptions['clientSecret'],
+                'client_id' => $mockOptions['client_id'],
+                'client_secret' => $mockOptions['client_secret'],
                 'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
@@ -87,7 +87,7 @@ class ControllerTest extends TestCase
         // Now we need to handle the post function called in getData.
 
         // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['groupId'] . '/members';
+        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
 
         $mockClientGetOptions = [
             'headers' => [
@@ -167,10 +167,10 @@ class ControllerTest extends TestCase
     {
         // Mock options for the Controller
         $mockOptions = [
-            'tenantId' => 'mock_tenant_id',
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_client_secret',
-            'groupId' => 'mock_group_id',
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
         ];
 
         // Mock EventDispatcher for the Controller
@@ -193,12 +193,12 @@ class ControllerTest extends TestCase
         $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $mockClientPostOptions = [
             'form_params' => [
-                'client_id' => $mockOptions['clientId'],
-                'client_secret' => $mockOptions['clientSecret'],
+                'client_id' => $mockOptions['client_id'],
+                'client_secret' => $mockOptions['client_secret'],
                 'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
@@ -232,7 +232,7 @@ class ControllerTest extends TestCase
         // Now we need to handle the post function called in getData.
 
         // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['groupId'] . '/members';
+        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
 
         $mockClientGetOptions = [
             'headers' => [
@@ -299,10 +299,10 @@ class ControllerTest extends TestCase
 
         // Mock options for the Controller
         $mockOptions = [
-            'tenantId' => 'mock_tenant_id',
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_client_secret',
-            'groupId' => 'mock_group_id',
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
         ];
 
         // Mock EventDispatcher for the Controller
@@ -319,12 +319,12 @@ class ControllerTest extends TestCase
         $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $mockClientPostOptions = [
             'form_params' => [
-                'client_id' => $mockOptions['clientId'],
-                'client_secret' => $mockOptions['clientSecret'],
+                'client_id' => $mockOptions['client_id'],
+                'client_secret' => $mockOptions['client_secret'],
                 'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
@@ -346,10 +346,10 @@ class ControllerTest extends TestCase
 
         // Mock options for the Controller
         $mockOptions = [
-            'tenantId' => 'mock_tenant_id',
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_client_secret',
-            'groupId' => 'mock_group_id',
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
         ];
 
         // Mock EventDispatcher for the Controller
@@ -372,12 +372,12 @@ class ControllerTest extends TestCase
         $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $mockClientPostOptions = [
             'form_params' => [
-                'client_id' => $mockOptions['clientId'],
-                'client_secret' => $mockOptions['clientSecret'],
+                'client_id' => $mockOptions['client_id'],
+                'client_secret' => $mockOptions['client_secret'],
                 'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
@@ -411,7 +411,7 @@ class ControllerTest extends TestCase
         // Now we need to handle the post function called in getData.
 
         // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['groupId'] . '/members';
+        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
 
         $mockClientGetOptions = [
             'headers' => [
@@ -436,10 +436,10 @@ class ControllerTest extends TestCase
 
         // Mock options for the Controller
         $mockOptions = [
-            'tenantId' => 'mock_tenant_id',
-            'clientId' => 'mock_client_id',
-            'clientSecret' => 'mock_client_secret',
-            'groupId' => 'mock_group_id',
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
         ];
 
         // Mock EventDispatcher for the Controller
@@ -462,12 +462,12 @@ class ControllerTest extends TestCase
         $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
 
         // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenantId'] . '/oauth2/v2.0/token';
+        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $mockClientPostOptions = [
             'form_params' => [
-                'client_id' => $mockOptions['clientId'],
-                'client_secret' => $mockOptions['clientSecret'],
+                'client_id' => $mockOptions['client_id'],
+                'client_secret' => $mockOptions['client_secret'],
                 'scope' => 'https://graph.microsoft.com/.default',
                 'grant_type' => 'client_credentials',
             ],
@@ -501,7 +501,7 @@ class ControllerTest extends TestCase
         // Now we need to handle the post function called in getData.
 
         // Mock arguments and response for the get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['groupId'] . '/members';
+        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
 
         $mockClientGetOptions = [
             'headers' => [
