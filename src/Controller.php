@@ -3,9 +3,11 @@
 namespace ItkDev\Adgangsstyring;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ItkDev\Adgangsstyring\Event\CommitEvent;
 use ItkDev\Adgangsstyring\Event\StartEvent;
 use ItkDev\Adgangsstyring\Event\UserDataEvent;
+use ItkDev\Adgangsstyring\Exception\TokenException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -32,21 +34,32 @@ class Controller
         $this->groupId = $options['groupId'];
     }
 
+    /**
+     * @throws TokenException
+     */
     public function run()
     {
         // Acquiring access token and token type
         $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
 
-        $token = json_decode($this->client->post($url, [
-            'form_params' => [
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ])->getBody()->getContents());
 
-        // Construct microsoft graph url for group
+        try {
+            $postResponse = $this->client->post($url, [
+                'form_params' => [
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret,
+                    'scope' => 'https://graph.microsoft.com/.default',
+                    'grant_type' => 'client_credentials',
+                ],
+            ]);
+        } catch (RequestException $e) {
+            throw new TokenException($e->getMessage());
+        }
+
+
+        $token = json_decode($postResponse->getBody()->getContents());
+
+        // Construct group url for microsoft graph
         $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->groupId . '/members';
 
         $tokenType = $token->token_type;
@@ -56,11 +69,21 @@ class Controller
         $startEvent = new StartEvent();
         $this->eventDispatcher->dispatch($startEvent);
 
-        // Send user data events as long as next link exists
+        $totalCount = 0;
+        // Send user data events containing users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
-            $event = new UserDataEvent($data['value']);
-            $this->eventDispatcher->dispatch($event);
+
+            if (array_key_exists('value', $data)) {
+
+                $count = count($data['value']);
+
+                if (0 !== $count) {
+                    $event = new UserDataEvent($data['value']);
+                    $this->eventDispatcher->dispatch($event);
+                }
+            }
+
             $groupUrl = $data['@odata.nextLink'] ?? null;
         }
 
@@ -69,13 +92,21 @@ class Controller
         $this->eventDispatcher->dispatch($commitEvent);
     }
 
+    /**
+     * @throws TokenException
+     */
     private function getData(string $url, string $tokenType, string $accessToken)
     {
-        $response = $this->client->get($url, [
-            'headers' => [
-                'authorization' => $tokenType . ' ' . $accessToken,
-            ],
-        ]);
+
+        try {
+            $response = $this->client->get($url, [
+                'headers' => [
+                    'authorization' => $tokenType . ' ' . $accessToken,
+                ],
+            ]);
+        } catch (RequestException $e) {
+            throw new TokenException($e->getMessage());
+        }
 
         return json_decode($response->getBody()->getContents(), true);
     }
