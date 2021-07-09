@@ -13,65 +13,52 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ControllerTest extends TestCase
 {
+    private $mockOptions;
+    private $mockEventDispatcher;
+    private $mockClient;
+    private $mockUrl;
+    private $mockClientPostOptions;
+    private $mockResponseInterfacePost;
+    private $mockGroupUrl;
+    private $mockClientGetOptions;
+    private $controller;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Create Controller
+        $this->setUpControllerParameters();
+        $this->controller = new Controller($this->mockEventDispatcher, $this->mockClient, $this->mockOptions);
+
+        $this->setUpClientPostCallParametersAndResponse();
+
+        $this->setUpClientGetCallParameters();
+    }
+
     /**
-     * Testing the Controller run() function.
+     * Testing the Controller run() function
      *
-     * Ensure the function loops while group url contain a next link
+     * Ensure the function loops while a next link exists
      */
     public function testRun()
     {
-        // Mock options for the Controller
-        $mockOptions = [
-            'tenant_id' => 'mock_tenant_id',
-            'client_id' => 'mock_client_id',
-            'client_secret' => 'mock_client_secret',
-            'group_id' => 'mock_group_id',
-        ];
-
-        // Mock EventDispatcher for the Controller
-        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
         // Expect dispatch method called 4 times
         // One StartEvent, two UserDataEvents and one CommitEvent
-        $mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->exactly(4))
             ->method('dispatch');
 
-        // Mock Client for the Controller
-        // Add methods post and get
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post', 'get']);
-
-        $mockClient = $mockClientBuilder->getMock();
-
-        // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
-
-        // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
-
-        $mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $mockOptions['client_id'],
-                'client_secret' => $mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ];
-
-        // Mock response from Client post function call
-        $mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('post')
-            ->with($mockUrl, $mockClientPostOptions)
-            ->willReturn($mockResponseInterfacePost);
+            ->with($this->mockUrl, $this->mockClientPostOptions)
+            ->willReturn($this->mockResponseInterfacePost);
 
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
-        $mockResponseInterfacePost
+        $this->mockResponseInterfacePost
             ->expects($this->once())
             ->method('getBody')
             ->willReturn($mockStreamInterfacePost);
@@ -86,23 +73,14 @@ class ControllerTest extends TestCase
 
         // Now we need to handle the post function called in getData.
 
-        // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
-
-        $mockClientGetOptions = [
-            'headers' => [
-                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
-            ],
-        ];
-
         $mockNextLink = 'mock_next_link';
 
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
-        $mockClient
+        $this->mockClient
             ->expects($this->exactly(2))
             ->method('get')
-            ->withConsecutive([$mockGroupUrl, $mockClientGetOptions], [$mockNextLink, $mockClientGetOptions])
+            ->withConsecutive([$this->mockGroupUrl, $this->mockClientGetOptions], [$mockNextLink, $this->mockClientGetOptions])
             ->willReturn($mockResponseInterfaceGet);
 
         // Mock response from getBody function call
@@ -154,69 +132,33 @@ class ControllerTest extends TestCase
             ->willReturnOnConsecutiveCalls($mockStringResponseGetOne, $mockStringResponseGetTwo);
 
         // Call the run function on Controller
-        $controller->run();
+        $this->controller->run();
     }
 
 
     /**
-     * Testing the Controller run() function.
+     * Testing the Controller run() function
      *
      * Ensure the function does not send two UserDataEvents when theres no users on second list
      */
     public function testRunNoUsersOnSecondList()
     {
-        // Mock options for the Controller
-        $mockOptions = [
-            'tenant_id' => 'mock_tenant_id',
-            'client_id' => 'mock_client_id',
-            'client_secret' => 'mock_client_secret',
-            'group_id' => 'mock_group_id',
-        ];
-
-        // Mock EventDispatcher for the Controller
-        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
         // Expect dispatch method called 3 times
         // One StartEvent, one UserDataEvent and one CommitEvent
-        $mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->exactly(3))
             ->method('dispatch');
 
-        // Mock Client for the Controller
-        // Add methods post and get
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post', 'get']);
-
-        $mockClient = $mockClientBuilder->getMock();
-
-        // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
-
-        // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
-
-        $mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $mockOptions['client_id'],
-                'client_secret' => $mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ];
-
-        // Mock response from Client post function call
-        $mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('post')
-            ->with($mockUrl, $mockClientPostOptions)
-            ->willReturn($mockResponseInterfacePost);
+            ->with($this->mockUrl, $this->mockClientPostOptions)
+            ->willReturn($this->mockResponseInterfacePost);
 
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
-        $mockResponseInterfacePost
+        $this->mockResponseInterfacePost
             ->expects($this->once())
             ->method('getBody')
             ->willReturn($mockStreamInterfacePost);
@@ -231,23 +173,14 @@ class ControllerTest extends TestCase
 
         // Now we need to handle the post function called in getData.
 
-        // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
-
-        $mockClientGetOptions = [
-            'headers' => [
-                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
-            ],
-        ];
-
         $mockNextLink = 'mock_next_link';
 
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
-        $mockClient
+        $this->mockClient
             ->expects($this->exactly(2))
             ->method('get')
-            ->withConsecutive([$mockGroupUrl, $mockClientGetOptions], [$mockNextLink, $mockClientGetOptions])
+            ->withConsecutive([$this->mockGroupUrl, $this->mockClientGetOptions], [$mockNextLink, $this->mockClientGetOptions])
             ->willReturn($mockResponseInterfaceGet);
 
         // Mock response from getBody function call
@@ -289,113 +222,54 @@ class ControllerTest extends TestCase
             ->willReturnOnConsecutiveCalls($mockStringResponseGetOne, $mockStringResponseGetTwo);
 
         // Call the run function on Controller
-        $controller->run();
+        $this->controller->run();
     }
 
+    /**
+     * Testing the Controller run() function
+     *
+     * Ensure TokenException is thrown when token is not acquired
+     */
     public function testRunTokenException()
     {
         // Expect TokenException to be thrown
         $this->expectException(TokenException::class);
 
-        // Mock options for the Controller
-        $mockOptions = [
-            'tenant_id' => 'mock_tenant_id',
-            'client_id' => 'mock_client_id',
-            'client_secret' => 'mock_client_secret',
-            'group_id' => 'mock_group_id',
-        ];
-
-        // Mock EventDispatcher for the Controller
-        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
-        // Mock Client for the Controller
-        // Add post method
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post']);
-
-        $mockClient = $mockClientBuilder->getMock();
-
-        // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
-
-        // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
-
-        $mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $mockOptions['client_id'],
-                'client_secret' => $mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ];
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('post')
-            ->with($mockUrl, $mockClientPostOptions)
+            ->with($this->mockUrl, $this->mockClientPostOptions)
             ->willThrowException(new TokenException('TokenException'));
 
-        $controller->run();
+        $this->controller->run();
     }
 
+    /**
+     * Testing the Controller run() and getData() function
+     *
+     * Ensure RunDataException is thrown when acquiring data fails
+     */
     public function testRunDataException()
     {
         // Expect DataException to be thrown
         $this->expectException(DataException::class);
 
-        // Mock options for the Controller
-        $mockOptions = [
-            'tenant_id' => 'mock_tenant_id',
-            'client_id' => 'mock_client_id',
-            'client_secret' => 'mock_client_secret',
-            'group_id' => 'mock_group_id',
-        ];
-
-        // Mock EventDispatcher for the Controller
-        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
         // Expect dispatch method called 3 times
         // One StartEvent, one UserDataEvent and one CommitEvent
-        $mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->exactly(1))
             ->method('dispatch');
 
-        // Mock Client for the Controller
-        // Add methods post and get
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post', 'get']);
-
-        $mockClient = $mockClientBuilder->getMock();
-
-        // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
-
-        // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
-
-        $mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $mockOptions['client_id'],
-                'client_secret' => $mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ];
-
-        // Mock response from Client post function call
-        $mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('post')
-            ->with($mockUrl, $mockClientPostOptions)
-            ->willReturn($mockResponseInterfacePost);
+            ->with($this->mockUrl, $this->mockClientPostOptions)
+            ->willReturn($this->mockResponseInterfacePost);
 
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
-        $mockResponseInterfacePost
+        $this->mockResponseInterfacePost
             ->expects($this->once())
             ->method('getBody')
             ->willReturn($mockStreamInterfacePost);
@@ -410,82 +284,42 @@ class ControllerTest extends TestCase
 
         // Now we need to handle the post function called in getData.
 
-        // Mock arguments and response for first and second get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
-
-        $mockClientGetOptions = [
-            'headers' => [
-                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
-            ],
-        ];
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('get')
-            ->with($mockGroupUrl, $mockClientGetOptions)
+            ->with($this->mockGroupUrl, $this->mockClientGetOptions)
             ->willThrowException(new DataException('DataException'));
 
         // Call the run function on Controller
-        $controller->run();
+        $this->controller->run();
     }
 
+    /**
+     * Testing the Controller run() function
+     *
+     * Ensure DataException is thrown when no users is in group
+     */
     public function testRunNoUsersInGroup()
     {
         // Expect DataException to be thrown
         $this->expectException(DataException::class);
 
-        // Mock options for the Controller
-        $mockOptions = [
-            'tenant_id' => 'mock_tenant_id',
-            'client_id' => 'mock_client_id',
-            'client_secret' => 'mock_client_secret',
-            'group_id' => 'mock_group_id',
-        ];
-
-        // Mock EventDispatcher for the Controller
-        $mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
         // Expect dispatch method called 3 times
         // One StartEvent, one UserDataEvent and one CommitEvent
-        $mockEventDispatcher
+        $this->mockEventDispatcher
             ->expects($this->exactly(1))
             ->method('dispatch');
 
-        // Mock Client for the Controller
-        // Add methods post and get
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post', 'get']);
-
-        $mockClient = $mockClientBuilder->getMock();
-
-        // Create Controller
-        $controller = new Controller($mockEventDispatcher, $mockClient, $mockOptions);
-
-        // Mock arguments for post call on client
-        $mockUrl = 'https://login.microsoftonline.com/' . $mockOptions['tenant_id'] . '/oauth2/v2.0/token';
-
-        $mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $mockOptions['client_id'],
-                'client_secret' => $mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ];
-
-        // Mock response from Client post function call
-        $mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
-
-        $mockClient
+        $this->mockClient
             ->expects($this->once())
             ->method('post')
-            ->with($mockUrl, $mockClientPostOptions)
-            ->willReturn($mockResponseInterfacePost);
+            ->with($this->mockUrl, $this->mockClientPostOptions)
+            ->willReturn($this->mockResponseInterfacePost);
 
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
-        $mockResponseInterfacePost
+        $this->mockResponseInterfacePost
             ->expects($this->once())
             ->method('getBody')
             ->willReturn($mockStreamInterfacePost);
@@ -500,21 +334,12 @@ class ControllerTest extends TestCase
 
         // Now we need to handle the post function called in getData.
 
-        // Mock arguments and response for the get function call on client
-        $mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $mockOptions['group_id'] . '/members';
-
-        $mockClientGetOptions = [
-            'headers' => [
-                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
-            ],
-        ];
-
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
-        $mockClient
+        $this->mockClient
             ->expects($this->exactly(1))
             ->method('get')
-            ->with($mockGroupUrl, $mockClientGetOptions)
+            ->with($this->mockGroupUrl, $this->mockClientGetOptions)
             ->willReturn($mockResponseInterfaceGet);
 
         // Mock response from getBody function call
@@ -542,6 +367,58 @@ class ControllerTest extends TestCase
             ->willReturn($mockStringResponseGetOne);
 
         // Call the run function on Controller
-        $controller->run();
+        $this->controller->run();
+    }
+
+    private function setUpControllerParameters()
+    {
+        // Setup mock options for Controller options parameter
+        $this->mockOptions = [
+            'tenant_id' => 'mock_tenant_id',
+            'client_id' => 'mock_client_id',
+            'client_secret' => 'mock_client_secret',
+            'group_id' => 'mock_group_id',
+        ];
+
+        // Mock EventDispatcher for Controller
+        $this->mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
+
+        // Mock Client for the Controller
+        // Add methods post and get
+        $mockClientBuilder = $this->getMockBuilder(Client::class)
+            ->addMethods(['post', 'get']);
+
+        $this->mockClient = $mockClientBuilder->getMock();
+    }
+
+    private function setUpClientPostCallParametersAndResponse()
+    {
+        // Mock arguments for post call on client
+        $this->mockUrl = 'https://login.microsoftonline.com/' . $this->mockOptions['tenant_id'] . '/oauth2/v2.0/token';
+
+        $this->mockClientPostOptions = [
+            'form_params' => [
+                'client_id' => $this->mockOptions['client_id'],
+                'client_secret' => $this->mockOptions['client_secret'],
+                'scope' => 'https://graph.microsoft.com/.default',
+                'grant_type' => 'client_credentials',
+            ],
+        ];
+
+        // Mock response from Client post function call
+        $this->mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
+
+    }
+
+    private function setUpClientGetCallParameters()
+    {
+        // Mock arguments and response for the get function call on client
+        $this->mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->mockOptions['group_id'] . '/members';
+
+        $this->mockClientGetOptions = [
+            'headers' => [
+                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
+            ],
+        ];
     }
 }
