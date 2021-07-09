@@ -69,6 +69,7 @@ class Controller
         $startEvent = new StartEvent();
         $this->eventDispatcher->dispatch($startEvent);
 
+        $totalCount = 0;
         // Send user data events containing users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
@@ -77,12 +78,17 @@ class Controller
                 $count = count($data['value']);
 
                 if (0 !== $count) {
+                    $totalCount += $count;
                     $event = new UserDataEvent($data['value']);
                     $this->eventDispatcher->dispatch($event);
                 }
             }
 
             $groupUrl = $data['@odata.nextLink'] ?? null;
+        }
+
+        if (0 === $totalCount) {
+            throw new DataException('No users found in group.');
         }
 
         // Send commit event indicating no more user data events coming
