@@ -42,7 +42,6 @@ class Controller
         // Acquiring access token and token type
         $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
 
-
         try {
             $postResponse = $this->client->post($url, [
                 'form_params' => [
@@ -75,7 +74,6 @@ class Controller
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
             if (array_key_exists('value', $data)) {
-
                 $count = count($data['value']);
 
                 if (0 !== $count) {
@@ -97,7 +95,6 @@ class Controller
      */
     private function getData(string $url, string $tokenType, string $accessToken)
     {
-
         try {
             $response = $this->client->get($url, [
                 'headers' => [

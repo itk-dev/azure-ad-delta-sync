@@ -13,6 +13,11 @@
             "ItkDev\\Adgangsstyring\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "ItkDev\\Adgangsstyring\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "ext-json": "*",
         "symfony/event-dispatcher": "^4.4 || ^5.0",
