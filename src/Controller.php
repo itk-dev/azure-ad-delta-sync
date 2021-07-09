@@ -14,12 +14,20 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
 {
-    private $tenantId;
-    private $clientId;
-    private $clientSecret;
-    private $groupId;
+    /**
+     * @var Client
+     */
     private $client;
+
+    /**
+     * @var EventDispatcherInterface
+     */
     private $eventDispatcher;
+
+    /**
+     * @var array
+     */
+    private $options;
 
     public function __construct(EventDispatcherInterface $eventDispatcher, Client $client, array $options)
     {
@@ -27,12 +35,9 @@ class Controller
         $this->client = $client;
 
         $resolver = new OptionsResolver();
-        $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
-        $resolver->resolve($options);
-        $this->tenantId = $options['tenantId'];
-        $this->clientId = $options['clientId'];
-        $this->clientSecret = $options['clientSecret'];
-        $this->groupId = $options['groupId'];
+        $this->configureOptions($resolver);
+
+        $this->options = $resolver->resolve($options);
     }
 
     /**
@@ -41,13 +46,13 @@ class Controller
     public function run()
     {
         // Acquiring access token and token type
-        $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
+        $url = 'https://login.microsoftonline.com/' . $this->options['tenantId'] . '/oauth2/v2.0/token';
 
         try {
             $postResponse = $this->client->post($url, [
                 'form_params' => [
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
+                    'client_id' => $this->options['clientId'],
+                    'client_secret' => $this->options['clientSecret'],
                     'scope' => 'https://graph.microsoft.com/.default',
                     'grant_type' => 'client_credentials',
                 ],
@@ -56,11 +61,10 @@ class Controller
             throw new TokenException('Cannot get token.', $e->getCode(), $e);
         }
 
-
         $token = json_decode($postResponse->getBody()->getContents());
 
         // Construct group url for microsoft graph
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->groupId . '/members';
+        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['groupId'] . '/members';
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
@@ -70,7 +74,7 @@ class Controller
         $this->eventDispatcher->dispatch($startEvent);
 
         $totalCount = 0;
-        // Send user data events containing users as long as next link exists
+        // Dispatch user data events containing users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
@@ -78,15 +82,20 @@ class Controller
                 $count = count($data['value']);
 
                 if (0 !== $count) {
+                    // Update total count
                     $totalCount += $count;
+
+                    // Create and dispatch event containing users
                     $event = new UserDataEvent($data['value']);
                     $this->eventDispatcher->dispatch($event);
                 }
             }
 
+            // Get next uri containing users
             $groupUrl = $data['@odata.nextLink'] ?? null;
         }
 
+        // Throw DataException if no users in group
         if (0 === $totalCount) {
             throw new DataException('No users found in group.');
         }
@@ -97,9 +106,13 @@ class Controller
     }
 
     /**
+     * @param string $url
+     * @param string $tokenType
+     * @param string $accessToken
+     * @return array
      * @throws DataException
      */
-    private function getData(string $url, string $tokenType, string $accessToken)
+    private function getData(string $url, string $tokenType, string $accessToken): array
     {
         try {
             $response = $this->client->get($url, [
@@ -112,5 +125,13 @@ class Controller
         }
 
         return json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * @param OptionsResolver $resolver
+     */
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
     }
 }
