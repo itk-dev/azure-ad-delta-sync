@@ -13,15 +13,15 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ControllerTest extends TestCase
 {
-    private $mockOptions;
-    private $mockEventDispatcher;
-    private $mockClient;
-    private $mockUrl;
-    private $mockClientPostOptions;
-    private $mockResponseInterfacePost;
-    private $mockGroupUrl;
-    private $mockClientGetOptions;
     private $controller;
+    private $mockClient;
+    private $mockClientGetOptions;
+    private $mockClientPostOptions;
+    private $mockEventDispatcher;
+    private $mockGroupUrl;
+    private $mockOptions;
+    private $mockResponseInterfacePost;
+    private $mockUrl;
 
     protected function setUp(): void
     {
@@ -99,11 +99,11 @@ class ControllerTest extends TestCase
             'value' => [
                 '0' => [
                     'id' => 'mock_id_1',
-                    'surname' => 'mock_surname_1'
+                    'name' => 'mock_name_1'
                 ],
                 '1' => [
                     'id' => 'mock_id_2',
-                    'surname' => 'mock_surname_2'
+                    'name' => 'mock_name_2'
                 ],
             ],
         ];
@@ -113,11 +113,11 @@ class ControllerTest extends TestCase
             'value' => [
                 '0' => [
                     'id' => 'mock_id_3',
-                    'surname' => 'mock_surname_3'
+                    'name' => 'mock_name_3'
                 ],
                 '1' => [
                     'id' => 'mock_id_4',
-                    'surname' => 'mock_surname_4'
+                    'name' => 'mock_name_4'
                 ],
             ],
         ];
@@ -199,11 +199,11 @@ class ControllerTest extends TestCase
             'value' => [
                 '0' => [
                     'id' => 'mock_id_1',
-                    'surname' => 'mock_surname_1'
+                    'name' => 'mock_name_1'
                 ],
                 '1' => [
                     'id' => 'mock_id_2',
-                    'surname' => 'mock_surname_2'
+                    'name' => 'mock_name_2'
                 ],
             ],
         ];
@@ -351,7 +351,7 @@ class ControllerTest extends TestCase
             ->willReturn($mockStreamInterfaceGet);
 
         // Mock response array
-        $mockResponseArrayOne = [
+        $mockResponseArray = [
             '@odata.type' => 'mock_data_context',
             'value' => [
 
@@ -359,7 +359,7 @@ class ControllerTest extends TestCase
         ];
 
         // The respective json encoding as this is what we get from getContents function call
-        $mockStringResponseGetOne = json_encode($mockResponseArrayOne);
+        $mockStringResponseGetOne = json_encode($mockResponseArray);
 
         $mockStreamInterfaceGet
             ->expects($this->exactly(1))
@@ -407,7 +407,6 @@ class ControllerTest extends TestCase
 
         // Mock response from Client post function call
         $this->mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
-
     }
 
     private function setUpClientGetCallParameters()
