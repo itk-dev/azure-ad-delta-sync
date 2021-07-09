@@ -18,10 +18,10 @@ class Controller
     private $client;
     private $eventDispatcher;
 
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $options, Client $client)
+    public function __construct(EventDispatcherInterface $eventDispatcher, Client $client, array $options)
     {
-        $this->client = $client;
         $this->eventDispatcher = $eventDispatcher;
+        $this->client = $client;
 
         $resolver = new OptionsResolver();
         $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
