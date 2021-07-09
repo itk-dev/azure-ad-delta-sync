@@ -69,7 +69,6 @@ class Controller
         $startEvent = new StartEvent();
         $this->eventDispatcher->dispatch($startEvent);
 
-        $totalCount = 0;
         // Send user data events containing users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
