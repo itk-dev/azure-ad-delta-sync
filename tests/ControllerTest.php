@@ -2,11 +2,11 @@
 
 namespace ItkDev\Adgangsstyring\Tests;
 
+use GuzzleHttp\Client;
 use ItkDev\Adgangsstyring\Controller;
 use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
