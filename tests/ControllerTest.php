@@ -29,7 +29,7 @@ class ControllerTest extends TestCase
 
         // Create Controller
         $this->setUpControllerParameters();
-        $this->controller = new Controller($this->mockEventDispatcher, $this->mockClient, $this->mockOptions);
+        $this->controller = new Controller($this->mockClient, $this->mockOptions);
 
         $this->setUpClientPostCallParametersAndResponse();
 
