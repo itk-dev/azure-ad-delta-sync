@@ -14,7 +14,7 @@ If you are looking to use this in a Symfony or Drupal project you should use
 either:
 
 * Symfony: LINK GOES HERE
-* Drupal: LINK GOES HERE
+* Drupal: [itk-dev/adgangsstyring_drupal](https://github.com/itk-dev/adgangsstyring_drupal)
 
 ### Direct installation
 
