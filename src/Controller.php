@@ -9,6 +9,8 @@ use ItkDev\Adgangsstyring\Event\StartEvent;
 use ItkDev\Adgangsstyring\Event\UserDataEvent;
 use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
+use ItkDev\Adgangsstyring\Handler\EventDispatcherHandler;
+use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -20,18 +22,12 @@ class Controller
     private $client;
 
     /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
      * @var array
      */
     private $options;
 
-    public function __construct(EventDispatcherInterface $eventDispatcher, Client $client, array $options)
+    public function __construct(Client $client, array $options)
     {
-        $this->eventDispatcher = $eventDispatcher;
         $this->client = $client;
 
         $resolver = new OptionsResolver();
@@ -43,8 +39,12 @@ class Controller
     /**
      * @throws TokenException|DataException
      */
-    public function run()
+    public function run(HandlerInterface $handler = null)
     {
+        if (null === $handler) {
+            $handler = new EventDispatcherHandler();
+        }
+
         // Acquiring access token and token type
         $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
 
@@ -69,9 +69,7 @@ class Controller
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
-        // Send start event
-        $startEvent = new StartEvent();
-        $this->eventDispatcher->dispatch($startEvent);
+        $handler->start();
 
         $totalCount = 0;
         // Dispatch user data events containing users as long as next link exists
@@ -85,9 +83,7 @@ class Controller
                     // Update total count
                     $totalCount += $count;
 
-                    // Create and dispatch event containing users
-                    $event = new UserDataEvent($data['value']);
-                    $this->eventDispatcher->dispatch($event);
+                    $handler->retainUsers($data['value']);
                 }
             }
 
@@ -100,9 +96,7 @@ class Controller
             throw new DataException('No users found in group.');
         }
 
-        // Send commit event indicating no more user data events coming
-        $commitEvent = new CommitEvent();
-        $this->eventDispatcher->dispatch($commitEvent);
+        $handler->commit();
     }
 
     /**

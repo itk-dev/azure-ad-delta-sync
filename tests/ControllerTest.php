@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use ItkDev\Adgangsstyring\Controller;
 use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
+use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -29,7 +30,7 @@ class ControllerTest extends TestCase
 
         // Create Controller
         $this->setUpControllerParameters();
-        $this->controller = new Controller($this->mockEventDispatcher, $this->mockClient, $this->mockOptions);
+        $this->controller = new Controller($this->mockClient, $this->mockOptions);
 
         $this->setUpClientPostCallParametersAndResponse();
 
@@ -43,12 +44,6 @@ class ControllerTest extends TestCase
      */
     public function testRun()
     {
-        // Expect dispatch method called 4 times
-        // One StartEvent, two UserDataEvents and one CommitEvent
-        $this->mockEventDispatcher
-            ->expects($this->exactly(4))
-            ->method('dispatch');
-
         $this->mockClient
             ->expects($this->once())
             ->method('post')
@@ -131,10 +126,20 @@ class ControllerTest extends TestCase
             ->method('getContents')
             ->willReturnOnConsecutiveCalls($mockStringResponseGetOne, $mockStringResponseGetTwo);
 
-        // Call the run function on Controller
-        $this->controller->run();
-    }
+      $handler = $this->createMock(HandlerInterface::class);
+      $handler
+        ->expects($this->once())
+        ->method('start');
+      $handler
+        ->expects($this->exactly(2))
+        ->method('retainUsers');
+      $handler
+        ->expects($this->once())
+        ->method('commit');
 
+      // Call the run function on Controller
+        $this->controller->run($handler);
+    }
 
     /**
      * Testing the Controller run() function
@@ -143,12 +148,6 @@ class ControllerTest extends TestCase
      */
     public function testRunNoUsersOnSecondList()
     {
-        // Expect dispatch method called 3 times
-        // One StartEvent, one UserDataEvent and one CommitEvent
-        $this->mockEventDispatcher
-            ->expects($this->exactly(3))
-            ->method('dispatch');
-
         $this->mockClient
             ->expects($this->once())
             ->method('post')
@@ -221,8 +220,19 @@ class ControllerTest extends TestCase
             ->method('getContents')
             ->willReturnOnConsecutiveCalls($mockStringResponseGetOne, $mockStringResponseGetTwo);
 
-        // Call the run function on Controller
-        $this->controller->run();
+      $handler = $this->createMock(HandlerInterface::class);
+      $handler
+        ->expects($this->once())
+        ->method('start');
+      $handler
+        ->expects($this->once())
+        ->method('retainUsers');
+      $handler
+        ->expects($this->once())
+        ->method('commit');
+
+      // Call the run function on Controller
+        $this->controller->run($handler);
     }
 
     /**
@@ -241,7 +251,18 @@ class ControllerTest extends TestCase
             ->with($this->mockUrl, $this->mockClientPostOptions)
             ->willThrowException(new TokenException('TokenException'));
 
-        $this->controller->run();
+      $handler = $this->createMock(HandlerInterface::class);
+      $handler
+        ->expects($this->never())
+        ->method('start');
+      $handler
+        ->expects($this->never())
+        ->method('retainUsers');
+      $handler
+        ->expects($this->never())
+        ->method('commit');
+
+      $this->controller->run($handler);
     }
 
     /**
@@ -253,12 +274,6 @@ class ControllerTest extends TestCase
     {
         // Expect DataException to be thrown
         $this->expectException(DataException::class);
-
-        // Expect dispatch method called 3 times
-        // One StartEvent, one UserDataEvent and one CommitEvent
-        $this->mockEventDispatcher
-            ->expects($this->exactly(1))
-            ->method('dispatch');
 
         $this->mockClient
             ->expects($this->once())
@@ -290,8 +305,19 @@ class ControllerTest extends TestCase
             ->with($this->mockGroupUrl, $this->mockClientGetOptions)
             ->willThrowException(new DataException('DataException'));
 
-        // Call the run function on Controller
-        $this->controller->run();
+      $handler = $this->createMock(HandlerInterface::class);
+      $handler
+        ->expects($this->once())
+        ->method('start');
+      $handler
+        ->expects($this->never())
+        ->method('retainUsers');
+      $handler
+        ->expects($this->never())
+        ->method('commit');
+
+      // Call the run function on Controller
+        $this->controller->run($handler);
     }
 
     /**
@@ -303,12 +329,6 @@ class ControllerTest extends TestCase
     {
         // Expect DataException to be thrown
         $this->expectException(DataException::class);
-
-        // Expect dispatch method called 3 times
-        // One StartEvent, one UserDataEvent and one CommitEvent
-        $this->mockEventDispatcher
-            ->expects($this->exactly(1))
-            ->method('dispatch');
 
         $this->mockClient
             ->expects($this->once())
@@ -366,8 +386,19 @@ class ControllerTest extends TestCase
             ->method('getContents')
             ->willReturn($mockStringResponseGetOne);
 
-        // Call the run function on Controller
-        $this->controller->run();
+      $handler = $this->createMock(HandlerInterface::class);
+      $handler
+        ->expects($this->once())
+        ->method('start');
+      $handler
+        ->expects($this->never())
+        ->method('retainUsers');
+      $handler
+        ->expects($this->never())
+        ->method('commit');
+
+      // Call the run function on Controller
+        $this->controller->run($handler);
     }
 
     private function setUpControllerParameters()
