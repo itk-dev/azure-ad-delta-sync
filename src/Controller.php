@@ -3,80 +3,129 @@
 namespace ItkDev\Adgangsstyring;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use ItkDev\Adgangsstyring\Event\CommitEvent;
 use ItkDev\Adgangsstyring\Event\StartEvent;
 use ItkDev\Adgangsstyring\Event\UserDataEvent;
+use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\TokenException;
+use ItkDev\Adgangsstyring\Handler\EventDispatcherHandler;
+use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
 {
-    private $tenantId;
-    private $clientId;
-    private $clientSecret;
-    private $groupId;
+    /**
+     * @var Client
+     */
     private $client;
-    private $eventDispatcher;
 
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $options, Client $client)
+    /**
+     * @var array
+     */
+    private $options;
+
+    public function __construct(Client $client, array $options)
     {
         $this->client = $client;
-        $this->eventDispatcher = $eventDispatcher;
 
         $resolver = new OptionsResolver();
-        $resolver->setRequired(['tenantId', 'clientId', 'clientSecret', 'groupId']);
-        $resolver->resolve($options);
-        $this->tenantId = $options['tenantId'];
-        $this->clientId = $options['clientId'];
-        $this->clientSecret = $options['clientSecret'];
-        $this->groupId = $options['groupId'];
+        $this->configureOptions($resolver);
+
+        $this->options = $resolver->resolve($options);
     }
 
-    public function run()
+    /**
+     * @throws TokenException|DataException
+     */
+    public function run(HandlerInterface $handler = null)
     {
+        if (null === $handler) {
+            $handler = new EventDispatcherHandler();
+        }
+
         // Acquiring access token and token type
-        $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
+        $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
 
-        $token = json_decode($this->client->post($url, [
-            'form_params' => [
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
-        ])->getBody()->getContents());
+        try {
+            $postResponse = $this->client->post($url, [
+                'form_params' => [
+                    'client_id' => $this->options['client_id'],
+                    'client_secret' => $this->options['client_secret'],
+                    'scope' => 'https://graph.microsoft.com/.default',
+                    'grant_type' => 'client_credentials',
+                ],
+            ]);
+        } catch (RequestException $e) {
+            throw new TokenException('Cannot get token.', $e->getCode(), $e);
+        }
 
-        // Construct microsoft graph url for group
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->groupId . '/members';
+        $token = json_decode($postResponse->getBody()->getContents());
+
+        // Construct group url for microsoft graph
+        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['group_id'] . '/members';
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
-        // Send start event
-        $startEvent = new StartEvent();
-        $this->eventDispatcher->dispatch($startEvent);
+        $handler->start();
 
-        // Send user data events as long as next link exists
+        $totalCount = 0;
+        // Dispatch user data events containing users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
-            $event = new UserDataEvent($data['value']);
-            $this->eventDispatcher->dispatch($event);
+
+            if (array_key_exists('value', $data)) {
+                $count = count($data['value']);
+
+                if (0 !== $count) {
+                    // Update total count
+                    $totalCount += $count;
+
+                    $handler->retainUsers($data['value']);
+                }
+            }
+
+            // Get next uri containing users
             $groupUrl = $data['@odata.nextLink'] ?? null;
         }
 
-        // Send commit event indicating no more user data events coming
-        $commitEvent = new CommitEvent();
-        $this->eventDispatcher->dispatch($commitEvent);
+        // Throw DataException if no users in group
+        if (0 === $totalCount) {
+            throw new DataException('No users found in group.');
+        }
+
+        $handler->commit();
     }
 
-    private function getData(string $url, string $tokenType, string $accessToken)
+    /**
+     * @param string $url
+     * @param string $tokenType
+     * @param string $accessToken
+     * @return array
+     * @throws DataException
+     */
+    private function getData(string $url, string $tokenType, string $accessToken): array
     {
-        $response = $this->client->get($url, [
-            'headers' => [
-                'authorization' => $tokenType . ' ' . $accessToken,
-            ],
-        ]);
+        try {
+            $response = $this->client->get($url, [
+                'headers' => [
+                    'authorization' => $tokenType . ' ' . $accessToken,
+                ],
+            ]);
+        } catch (RequestException $e) {
+            throw new DataException('Cannot get users.', $e->getCode(), $e);
+        }
 
         return json_decode($response->getBody()->getContents(), true);
+    }
+
+    /**
+     * @param OptionsResolver $resolver
+     */
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setRequired(['tenant_id', 'client_id', 'client_secret', 'group_id']);
     }
 }
