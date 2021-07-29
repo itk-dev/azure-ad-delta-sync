@@ -54,7 +54,7 @@ use ItkDev\Adgangsstyring\Controller;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $options = [
-  'tenantId' => 'something.onmicrosoft.com', // Tenant id 
+  'tenantId' => 'something.onmicrosoft.com', // Tenant id
   'clientId' => 'client_id', // Client id assigned by authorizer
   'clientSecret' => 'client_secret', // Client password assigned by authorizer
   'groupId' => 'group_id', // Group id provided by authorizer
@@ -92,6 +92,24 @@ $controller->run();
     yarn install
     yarn check-coding-standards
     ```
+
+### GitHub Actions
+
+All code checks mentioned above are automatically run by [GitHub
+Actions](https://github.com/features/actions) when a pull request is created.
+
+To run the actions locally, install [act](https://github.com/nektos/act) and run
+
+```sh
+act -P ubuntu-latest=shivammathur/node:focal pull_request
+```
+
+Use `act -P ubuntu-latest=shivammathur/node:focal pull_request --list` to see
+individual workflow jobs that can be run, e.g.
+
+```sh
+act -P ubuntu-latest=shivammathur/node:focal pull_request --job phpcsfixer
+```
 
 ### Apply Coding Standards
 

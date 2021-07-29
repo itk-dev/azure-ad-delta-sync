@@ -1,5 +1,6 @@
 {
     "name": "itkdev/adgangsstyring",
+    "description": "Adgangsstyring",
     "type": "library",
     "license": "MIT",
     "authors": [
