@@ -15,9 +15,9 @@ class EventDispatcherHandler implements HandlerInterface
     /**
      * EventDispatcherHandler constructor.
      */
-    public function __construct()
+    public function __construct(EventDispatcherInterface $eventDispatcher = null)
     {
-        $this->eventDispatcher = new EventDispatcher();
+        $this->eventDispatcher = $eventDispatcher ?? new EventDispatcher();
     }
 
     /**
