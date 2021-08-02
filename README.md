@@ -1,5 +1,3 @@
-# Work in progress
-
 # Adgangsstyring
 
 Composer package for acquiring users in specific Azure AD group.
