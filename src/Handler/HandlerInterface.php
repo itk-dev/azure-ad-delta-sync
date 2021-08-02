@@ -2,8 +2,6 @@
 
 namespace ItkDev\Adgangsstyring\Handler;
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
 interface HandlerInterface
 {
     /**

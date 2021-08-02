@@ -4,14 +4,9 @@ namespace ItkDev\Adgangsstyring;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use ItkDev\Adgangsstyring\Event\CommitEvent;
-use ItkDev\Adgangsstyring\Event\StartEvent;
-use ItkDev\Adgangsstyring\Event\UserDataEvent;
 use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
-use ItkDev\Adgangsstyring\Handler\EventDispatcherHandler;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
