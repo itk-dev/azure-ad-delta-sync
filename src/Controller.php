@@ -39,12 +39,8 @@ class Controller
     /**
      * @throws TokenException|DataException
      */
-    public function run(HandlerInterface $handler = null)
+    public function run(HandlerInterface $handler)
     {
-        if (null === $handler) {
-            $handler = new EventDispatcherHandler();
-        }
-
         // Acquiring access token and token type
         $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
 
