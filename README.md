@@ -1,5 +1,3 @@
-# Work in progress
-
 # Adgangsstyring
 
 Composer package for acquiring users in specific Azure AD group.
@@ -30,39 +28,54 @@ and the [Guzzle HTTP client](https://docs.guzzlephp.org/en/stable/).
 
 ### Flow
 
-The package will send out Symfony events which a using system
-should then listen to.
+To start the flow one needs to call the
+`Controller` `run(HandlerInterface $handler)` command.
 
-`StartEvent` indicates that the flow has started.
+You can either:
 
-`UserDataEvent` contains a list of users within the specified group.
-The list of users is limited to 100, so it may well send more than one `UserDataEvent`.
+* Create your own handler that implements
+ `HandlerInterface`
+* Use the provided `EventDispatcherHandler`
 
-`CommitEvent` suggests that no more events containing users are coming,
-and you may proceed your synchronization logic.
+Should you choose the latter you will need some EventListener
+or EventSubscriber.
 
-Note that this package does not do the synchronization
-of users, instead it provides a list of all users that
-currently are assigned to the group in question.
-
-Should the specified group contain no users an exception will be
-thrown and a `CommitEvent` will not be dispatched.
-This is to avoid using systems to be under the impression
-that every single user should be deleted.
-
-### Example usage
-
-When an instance of `Controller` is created it is configured
-with a Symfony `EventDispatcher`, a Guzzle `Client` and an array of `$options`.
-See the required options beneath.
-
-In order to handle the events sent by the `Controller` one
-should implement some event listener or subscriber.
+#### Custom handler way
 
 ```php
+<?php
+
+use ItkDev\Adgangsstyring\Handler\HandlerInterface;
+
+class SomeHandler implements HandlerInterface
+{
+    public function start(): void
+    {
+        // Some start logic
+    }
+
+    public function retainUsers(array $users): void
+    {
+        // Some user logic
+    }
+
+    public function commit(): void
+    {
+        // Some commit logic
+    }
+}
+```
+
+Be aware that `retainUsers()` may be called multiple times,
+as we are limited to 100 users per request.
+
+To start the flow provide a Guzzle `Client`
+and the required options seen beneath:
+
+```php
+
 use GuzzleHttp\Client;
 use ItkDev\Adgangsstyring\Controller;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 
 $options = [
@@ -72,21 +85,101 @@ $options = [
   'group_id' => 'some_group_id', // Group id provided by authorizer
 ];
 
-$eventSubscriber = new SomeEventSubscriber();
-
-$eventDispatcher = new EventDispatcher();
-$eventDispatcher->addSubscriber($eventSubscriber);
+$handler = new SomeHandler();
 
 $client = new Client();
+$controller = new Controller($client, $this->options);
 
-$controller = new Controller($eventDispatcher, $client, $options);
+$controller->run($handler);
 ```
 
-The flow is then started as follows:
+#### EventSubscriber way
+
+The provided `EventDispatcherHandler` dispatches
+three types of events.
+
+`StartEvent` indicates that the flow has started.
+
+`UserDataEvent` contains a list of users within the specified group.
+The list of users is limited to 100, so it may well send more than one `UserDataEvent`.
+
+`CommitEvent` suggests that no more events containing users are coming,
+and you may proceed your synchronization logic.
 
 ```php
-$controller->run();
+<?php
+
+use ItkDev\Adgangsstyring\Event\CommitEvent;
+use ItkDev\Adgangsstyring\Event\StartEvent;
+use ItkDev\Adgangsstyring\Event\UserDataEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class SomeEventSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            StartEvent::class => ['start'],
+            UserDataEvent::class => ['retainUsers'],
+            CommitEvent::class => ['commit'],
+        ];
+    }
+    
+    public function start(StartEvent $event)
+    {
+        // Some start logic
+    }
+    
+    public function retainUsers(UserDataEvent $event)
+    {
+        // Some user logic
+    }
+    
+    public function commit(CommitEvent $event)
+    {
+        // Some commit logic
+    }
+}
 ```
+
+To start the flow provide a Guzzle `Client`
+and the required options seen beneath:
+
+```php
+use GuzzleHttp\Client;
+use ItkDev\Adgangsstyring\Controller;
+use ItkDev\Adgangsstyring\Handler\EventDispatcherHandler;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
+
+$options = [
+  'tenant_id' => 'something.onmicrosoft.com', // Tenant id 
+  'client_id' => 'some_client_id', // Client id assigned by authorizer
+  'client_secret' => 'some_client_secret', // Client password assigned by authorizer
+  'group_id' => 'some_group_id', // Group id provided by authorizer
+];
+
+$handler = new EventDispatcherHandler($this->dispatcher);
+
+$client = new Client();
+$controller = new Controller($client, $this->options);
+
+$controller->run($handler);
+```
+
+The EventDispatcher must be dependency injected as creating
+a new will result in unregistered listener/subscriber.
+
+### General comments
+
+Note that this package does not do the synchronization
+of users, instead it provides a list of all users that
+currently are assigned to the group in question.
+
+Should the specified group contain no users an exception will be
+thrown and a `CommitEvent` will not be dispatched.
+This is to avoid using systems to be under the impression
+that every single user should be deleted.
 
 ## Development Setup
 
