@@ -5,8 +5,12 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "jekuaitk",
+            "name": "Jeppe Kuhlmann Andersen",
             "email": "jekua@aarhus.dk"
+        },
+        {
+            "name": "Mikkel Ricky",
+            "email": "rimi@aarhus.dk"
         }
     ],
     "autoload": {
