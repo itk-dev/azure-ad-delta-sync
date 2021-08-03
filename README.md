@@ -11,7 +11,7 @@ Composer package for acquiring users in specific Azure AD group.
 If you are looking to use this in a Symfony or Drupal project you should use
 either:
 
-* Symfony: LINK GOES HERE
+* Symfony: [itk-dev/adgangsstyring-bundle](https://github.com/itk-dev/adgangsstyring-bundle)
 * Drupal: [itk-dev/adgangsstyring_drupal](https://github.com/itk-dev/adgangsstyring_drupal)
 
 ### Direct installation
