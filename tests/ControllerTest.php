@@ -10,7 +10,6 @@ use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ControllerTest extends TestCase
 {
@@ -18,7 +17,6 @@ class ControllerTest extends TestCase
     private $mockClient;
     private $mockClientGetOptions;
     private $mockClientPostOptions;
-    private $mockEventDispatcher;
     private $mockGroupUrl;
     private $mockOptions;
     private $mockResponseInterfacePost;
@@ -144,7 +142,7 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() function
      *
-     * Ensure the function does not send two UserDataEvents when theres no users on second list
+     * Ensure the function does not call retainUsers twice when theres no users on second list
      */
     public function testRunNoUsersOnSecondList()
     {
@@ -410,9 +408,6 @@ class ControllerTest extends TestCase
             'client_secret' => 'mock_client_secret',
             'group_id' => 'mock_group_id',
         ];
-
-        // Mock EventDispatcher for Controller
-        $this->mockEventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
         // Mock Client for the Controller
         // Add methods post and get

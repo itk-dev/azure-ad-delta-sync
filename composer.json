@@ -5,8 +5,12 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "jekuaitk",
+            "name": "Jeppe Kuhlmann Andersen",
             "email": "jekua@aarhus.dk"
+        },
+        {
+            "name": "Mikkel Ricky",
+            "email": "rimi@aarhus.dk"
         }
     ],
     "autoload": {
@@ -21,7 +25,6 @@
     },
     "require": {
         "ext-json": "*",
-        "symfony/event-dispatcher": "^4.4 || ^5.0",
         "guzzlehttp/guzzle": "^6.5",
         "escapestudios/symfony2-coding-standard": "^3.12",
         "symfony/options-resolver": "^4.4 || ^5.0"
