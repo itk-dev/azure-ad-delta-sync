@@ -11,6 +11,13 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
 {
+    const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
+    const MICROSOFT_TOKEN_SUBDIRECTORY = '/oauth2/v2.0/token';
+    const MICROSOFT_GRAPH_GROUPS_DOMAIN = 'https://graph.microsoft.com/v1.0/groups/';
+    const MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY = '/members';
+    const MICROSOFT_GRAPH_SCOPE = 'https://graph.microsoft.com/.default';
+    const MICROSOFT_GRANT_TYPE = 'client_credentials';
+
     /**
      * @var Client
      */
@@ -37,15 +44,15 @@ class Controller
     public function run(HandlerInterface $handler)
     {
         // Acquiring access token and token type
-        $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
+        $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
 
         try {
             $postResponse = $this->client->post($url, [
                 'form_params' => [
                     'client_id' => $this->options['client_id'],
                     'client_secret' => $this->options['client_secret'],
-                    'scope' => 'https://graph.microsoft.com/.default',
-                    'grant_type' => 'client_credentials',
+                    'scope' => self::MICROSOFT_GRAPH_SCOPE,
+                    'grant_type' => self::MICROSOFT_GRANT_TYPE,
                 ],
             ]);
         } catch (RequestException $e) {
@@ -55,7 +62,7 @@ class Controller
         $token = json_decode($postResponse->getBody()->getContents());
 
         // Construct group url for microsoft graph
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['group_id'] . '/members';
+        $groupUrl = self::MICROSOFT_GRAPH_GROUPS_DOMAIN . $this->options['group_id'] . self::MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY;
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
