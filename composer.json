@@ -24,6 +24,7 @@
         }
     },
     "require": {
+        "php": "^7.4",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.5",
         "escapestudios/symfony2-coding-standard": "^3.12",
