@@ -21,12 +21,12 @@ class Controller
     /**
      * @var Client
      */
-    private $client;
+    private Client $client;
 
     /**
      * @var array
      */
-    private $options;
+    private array $options;
 
     public function __construct(Client $client, array $options)
     {
@@ -39,6 +39,8 @@ class Controller
     }
 
     /**
+     * Runs Azure AD Delta Sync flow.
+     *
      * @throws TokenException|DataException
      */
     public function run(HandlerInterface $handler)
@@ -74,7 +76,7 @@ class Controller
         $handler->collectUsersForDeletionList();
 
         $totalCount = 0;
-        // Dispatch user data events containing users as long as next link exists
+        // Handle users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
@@ -102,6 +104,8 @@ class Controller
     }
 
     /**
+     * Gets users from current url.
+     *
      * @param string $url
      * @param string $tokenType
      * @param string $accessToken
@@ -130,6 +134,8 @@ class Controller
     }
 
     /**
+     * Sets required options.
+     *
      * @param OptionsResolver $resolver
      */
     public function configureOptions(OptionsResolver $resolver)
