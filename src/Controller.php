@@ -11,12 +11,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Controller
 {
-    const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
-    const MICROSOFT_TOKEN_SUBDIRECTORY = '/oauth2/v2.0/token';
-    const MICROSOFT_GRAPH_GROUPS_DOMAIN = 'https://graph.microsoft.com/v1.0/groups/';
-    const MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY = '/members';
-    const MICROSOFT_GRAPH_SCOPE = 'https://graph.microsoft.com/.default';
-    const MICROSOFT_GRANT_TYPE = 'client_credentials';
+    private const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
+    private const MICROSOFT_TOKEN_SUBDIRECTORY = '/oauth2/v2.0/token';
+    private const MICROSOFT_GRAPH_GROUPS_DOMAIN = 'https://graph.microsoft.com/v1.0/groups/';
+    private const MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY = '/members';
+    private const MICROSOFT_GRAPH_SCOPE = 'https://graph.microsoft.com/.default';
+    private const MICROSOFT_GRANT_TYPE = 'client_credentials';
 
     /**
      * @var Client
