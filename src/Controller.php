@@ -71,7 +71,7 @@ class Controller
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
-        $handler->start();
+        $handler->collectUsersForDeletionList();
 
         $totalCount = 0;
         // Dispatch user data events containing users as long as next link exists
@@ -85,7 +85,7 @@ class Controller
                     // Update total count
                     $totalCount += $count;
 
-                    $handler->retainUsers($data['value']);
+                    $handler->removeUsersFromDeletionList($data['value']);
                 }
             }
 
@@ -98,7 +98,7 @@ class Controller
             throw new DataException('No users found in group.');
         }
 
-        $handler->commit();
+        $handler->commitDeletionList();
     }
 
     /**

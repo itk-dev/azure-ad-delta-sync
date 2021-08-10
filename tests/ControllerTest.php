@@ -127,13 +127,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->exactly(2))
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->once())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -142,7 +142,7 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() function
      *
-     * Ensure the function does not call retainUsers twice when theres no users on second list
+     * Ensure the function does not call removeUsersFromDeletionList twice when theres no users on second list
      */
     public function testRunNoUsersOnSecondList()
     {
@@ -221,13 +221,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->once())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->once())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -252,13 +252,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->never())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       $this->controller->run($handler);
     }
@@ -306,13 +306,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -387,13 +387,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);

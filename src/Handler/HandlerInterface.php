@@ -7,15 +7,15 @@ interface HandlerInterface
     /**
      *
      */
-    public function start(): void;
+    public function collectUsersForDeletionList(): void;
 
     /**
      * @param array $users
      */
-    public function retainUsers(array $users): void;
+    public function removeUsersFromDeletionList(array $users): void;
 
     /**
      *
      */
-    public function commit(): void;
+    public function commitDeletionList(): void;
 }
