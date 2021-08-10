@@ -59,7 +59,11 @@ class Controller
             throw new TokenException('Cannot get token.', $e->getCode(), $e);
         }
 
-        $token = json_decode($postResponse->getBody()->getContents());
+        try {
+            $token = json_decode($postResponse->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // Construct group url for microsoft graph
         $groupUrl = self::MICROSOFT_GRAPH_GROUPS_DOMAIN . $this->options['group_id'] . self::MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY;
@@ -116,7 +120,13 @@ class Controller
             throw new DataException('Cannot get users.', $e->getCode(), $e);
         }
 
-        return json_decode($response->getBody()->getContents(), true);
+        try {
+            $data = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        return $data;
     }
 
     /**
