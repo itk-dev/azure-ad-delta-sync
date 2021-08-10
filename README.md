@@ -41,24 +41,24 @@ use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 
 class SomeHandler implements HandlerInterface
 {
-    public function start(): void
+    public function collectUsersForDeletionList(): void
     {
         // Some start logic
     }
 
-    public function retainUsers(array $users): void
+    public function removeUsersFromDeletionList(array $users): void
     {
         // Some user logic
     }
 
-    public function commit(): void
+    public function commitDeletionList(): void
     {
         // Some commit logic
     }
 }
 ```
 
-Be aware that `retainUsers()` may be called multiple times,
+Be aware that `removeUsersFromDeletionList()` may be called multiple times,
 as we are limited to 100 users per request.
 
 To start the flow provide a Guzzle `Client`
