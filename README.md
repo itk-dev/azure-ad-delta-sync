@@ -1,6 +1,6 @@
 # Adgangsstyring
 
-Composer package for acquiring users in specific Azure AD group.
+Composer package for the Azure AD Delta Sync flow.
 
 ## References
 

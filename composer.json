@@ -1,6 +1,6 @@
 {
     "name": "itkdev/adgangsstyring",
-    "description": "Adgangsstyring",
+    "description": "Composer package for the Azure AD Delta Sync flow",
     "type": "library",
     "license": "MIT",
     "authors": [

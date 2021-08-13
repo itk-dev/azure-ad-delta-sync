@@ -10,7 +10,7 @@ interface HandlerInterface
     public function collectUsersForDeletionList(): void;
 
     /**
-     * Remove users provided from the deletion list.
+     * Remove users from the deletion list.
      *
      * @param array $users
      */

@@ -9,6 +9,13 @@ use ItkDev\Adgangsstyring\Exception\TokenException;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Class Controller
+ *
+ * Contains the logic needed for running the Azure AD Delta Sync flow.
+ *
+ * @package ItkDev\Adgangsstyring
+ */
 class Controller
 {
     private const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
@@ -39,7 +46,9 @@ class Controller
     }
 
     /**
-     * Runs Azure AD Delta Sync flow.
+     * Runs the Azure AD Delta Sync flow.
+     *
+     * @param HandlerInterface $handler
      *
      * @throws TokenException|DataException
      */
@@ -84,7 +93,6 @@ class Controller
                 $count = count($data['value']);
 
                 if (0 !== $count) {
-                    // Update total count
                     $totalCount += $count;
 
                     $handler->removeUsersFromDeletionList($data['value']);
@@ -109,7 +117,9 @@ class Controller
      * @param string $url
      * @param string $tokenType
      * @param string $accessToken
+     *
      * @return array
+     *
      * @throws DataException
      */
     private function getData(string $url, string $tokenType, string $accessToken): array
