@@ -5,6 +5,7 @@ namespace ItkDev\Adgangsstyring;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\NetworkException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -120,6 +121,7 @@ class Controller
      *
      * @return array
      *
+     * @throws NetworkException
      * @throws DataException
      */
     private function getData(string $url, string $tokenType, string $accessToken): array
@@ -131,7 +133,7 @@ class Controller
                 ],
             ]);
         } catch (RequestException $e) {
-            throw new DataException('Cannot get users.', $e->getCode(), $e);
+            throw new NetworkException('Cannot get users.', $e->getCode(), $e);
         }
 
         try {

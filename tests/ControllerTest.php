@@ -5,6 +5,7 @@ namespace ItkDev\Adgangsstyring\Tests;
 use GuzzleHttp\Client;
 use ItkDev\Adgangsstyring\Controller;
 use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\NetworkException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use PHPUnit\Framework\TestCase;
@@ -266,12 +267,12 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() and getData() function
      *
-     * Ensure RunDataException is thrown when acquiring data fails
+     * Ensure NetworkException is thrown when acquiring data fails
      */
     public function testRunDataException()
     {
         // Expect DataException to be thrown
-        $this->expectException(DataException::class);
+        $this->expectException(NetworkException::class);
 
         $this->mockClient
             ->expects($this->once())
@@ -301,7 +302,7 @@ class ControllerTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with($this->mockGroupUrl, $this->mockClientGetOptions)
-            ->willThrowException(new DataException('DataException'));
+            ->willThrowException(new NetworkException('NetworkException'));
 
       $handler = $this->createMock(HandlerInterface::class);
       $handler
