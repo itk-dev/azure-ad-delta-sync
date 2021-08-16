@@ -2,8 +2,9 @@
 
 namespace ItkDev\Adgangsstyring;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use Nyholm\Psr7\Request;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use ItkDev\Adgangsstyring\Exception\DataException;
 use ItkDev\Adgangsstyring\Exception\NetworkException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
@@ -27,16 +28,16 @@ class Controller
     private const MICROSOFT_GRANT_TYPE = 'client_credentials';
 
     /**
-     * @var Client
+     * @var ClientInterface
      */
-    private Client $client;
+    private ClientInterface $client;
 
     /**
      * @var array
      */
     private array $options;
 
-    public function __construct(Client $client, array $options)
+    public function __construct(ClientInterface $client, array $options)
     {
         $this->client = $client;
 
@@ -51,23 +52,25 @@ class Controller
      *
      * @param HandlerInterface $handler
      *
-     * @throws TokenException|DataException
+     * @throws TokenException|DataException|NetworkException
      */
     public function run(HandlerInterface $handler)
     {
         // Acquiring access token and token type
         $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
 
+        $request = new Request('POST', $url, [
+            'form_params' => [
+                'client_id' => $this->options['client_id'],
+                'client_secret' => $this->options['client_secret'],
+                'scope' => self::MICROSOFT_GRAPH_SCOPE,
+                'grant_type' => self::MICROSOFT_GRANT_TYPE,
+            ]
+        ]);
+
         try {
-            $postResponse = $this->client->post($url, [
-                'form_params' => [
-                    'client_id' => $this->options['client_id'],
-                    'client_secret' => $this->options['client_secret'],
-                    'scope' => self::MICROSOFT_GRAPH_SCOPE,
-                    'grant_type' => self::MICROSOFT_GRANT_TYPE,
-                ],
-            ]);
-        } catch (RequestException $e) {
+            $postResponse = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
             throw new TokenException('Cannot get token.', $e->getCode(), $e);
         }
 
@@ -126,13 +129,15 @@ class Controller
      */
     private function getData(string $url, string $tokenType, string $accessToken): array
     {
+        $request = new Request('GET', $url, [
+            'headers' => [
+                'authorization' => $tokenType . ' ' . $accessToken,
+            ],
+        ]);
+
         try {
-            $response = $this->client->get($url, [
-                'headers' => [
-                    'authorization' => $tokenType . ' ' . $accessToken,
-                ],
-            ]);
-        } catch (RequestException $e) {
+            $response = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
             throw new NetworkException('Cannot get users.', $e->getCode(), $e);
         }
 
