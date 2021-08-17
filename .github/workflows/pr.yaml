@@ -10,7 +10,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 7.4
-          extensions: ctype, dom, iconv, json, zip, gd, soap
+          extensions: json
           coverage: none
           tools: composer:v2
       # https://github.com/shivammathur/setup-php#cache-composer-dependencies
@@ -25,7 +25,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
       - name: Validate composer files
         run: |
-          composer validate composer.json
+          composer validate composer.json --strict
 
   php-check-coding-standards:
     name: PHP - Check Coding Standards
@@ -36,7 +36,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 7.4
-          extensions: ctype, dom, iconv, json, zip, gd, soap
+          extensions: json
           coverage: none
           tools: composer:v2
       # https://github.com/shivammathur/setup-php#cache-composer-dependencies
