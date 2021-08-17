@@ -59,14 +59,12 @@ class Controller
         // Acquiring access token and token type
         $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
 
-        $request = new Request('POST', $url, [
-            'form_params' => [
+        $request = new Request('POST', $url, [], http_build_query([
                 'client_id' => $this->options['client_id'],
                 'client_secret' => $this->options['client_secret'],
                 'scope' => self::MICROSOFT_GRAPH_SCOPE,
                 'grant_type' => self::MICROSOFT_GRANT_TYPE,
-            ]
-        ]);
+        ]));
 
         try {
             $postResponse = $this->client->sendRequest($request);
@@ -129,11 +127,7 @@ class Controller
      */
     private function getData(string $url, string $tokenType, string $accessToken): array
     {
-        $request = new Request('GET', $url, [
-            'headers' => [
-                'authorization' => $tokenType . ' ' . $accessToken,
-            ],
-        ]);
+        $request = new Request('GET', $url, ['authorization' => $tokenType . ' ' . $accessToken]);
 
         try {
             $response = $this->client->sendRequest($request);
