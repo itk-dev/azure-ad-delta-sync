@@ -1,4 +1,4 @@
-# Adgangsstyring
+# Azure AD Delta Sync
 
 Composer package for the Azure AD Delta Sync flow.
 
