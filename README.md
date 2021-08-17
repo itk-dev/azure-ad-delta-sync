@@ -19,7 +19,7 @@ either:
 To install this package directly run
 
 ```shell
-composer require itkdev/adgangsstyring
+composer require itk-dev/azure-ad-delta-sync
 ```
 
 ### Flow
@@ -99,12 +99,21 @@ that every single user should be deleted.
 
 ## Development Setup
 
+A `docker-compose.yml` file with a PHP 7.4 image is included in this project.
+To install the dependencies you can run
+
+```shell
+docker compose up -d
+docker compose exec phpfpm composer install
+```
+
 ### Unit Testing
 
 We use PHPUnit for unit testing. To run the tests:
 
 ```shell
-./vendor/bin/phpunit tests
+docker compose exec phpfpm composer install
+docker compose exec phpfpm ./vendor/bin/phpunit tests
 ```
 
 The test suite uses [Mocks](https://phpunit.de/manual/6.5/en/test-doubles.html)
@@ -115,14 +124,14 @@ for generation of test doubles.
 * PHP files (PHP_CodeSniffer)
 
     ```shell
-    composer check-coding-standards
+    docker compose exec phpfpm composer check-coding-standards
     ```
 
 * Markdown files (markdownlint standard rules)
 
     ```shell
-    yarn install
-    yarn check-coding-standards
+    docker run -v ${PWD}:/app itkdev/yarn:latest install
+    docker run -v ${PWD}:/app itkdev/yarn:latest check-coding-standards
     ```
 
 ### GitHub Actions
@@ -148,14 +157,14 @@ act -P ubuntu-latest=shivammathur/node:focal pull_request --job phpcsfixer
 * PHP files (PHP_CodeSniffer)
 
     ```shell
-    composer apply-coding-standards
+    docker compose exec phpfpm composer apply-coding-standards
     ```
 
 * Markdown files (markdownlint standard rules)
 
     ```shell
-    yarn install
-    yarn apply-coding-standards
+    docker run -v ${PWD}:/app itkdev/yarn:latest install
+    docker run -v ${PWD}:/app itkdev/yarn:latest apply-coding-standards
     ```
 
 ## Versioning
