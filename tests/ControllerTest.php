@@ -2,9 +2,11 @@
 
 namespace ItkDev\Adgangsstyring\Tests;
 
-use GuzzleHttp\Client;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use ItkDev\Adgangsstyring\Controller;
 use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\NetworkException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use PHPUnit\Framework\TestCase;
@@ -15,12 +17,8 @@ class ControllerTest extends TestCase
 {
     private $controller;
     private $mockClient;
-    private $mockClientGetOptions;
-    private $mockClientPostOptions;
-    private $mockGroupUrl;
     private $mockOptions;
     private $mockResponseInterfacePost;
-    private $mockUrl;
 
     protected function setUp(): void
     {
@@ -42,12 +40,6 @@ class ControllerTest extends TestCase
      */
     public function testRun()
     {
-        $this->mockClient
-            ->expects($this->once())
-            ->method('post')
-            ->with($this->mockUrl, $this->mockClientPostOptions)
-            ->willReturn($this->mockResponseInterfacePost);
-
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
@@ -71,10 +63,9 @@ class ControllerTest extends TestCase
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
         $this->mockClient
-            ->expects($this->exactly(2))
-            ->method('get')
-            ->withConsecutive([$this->mockGroupUrl, $this->mockClientGetOptions], [$mockNextLink, $this->mockClientGetOptions])
-            ->willReturn($mockResponseInterfaceGet);
+            ->expects($this->exactly(3))
+            ->method('sendRequest')
+            ->willReturnOnConsecutiveCalls($this->mockResponseInterfacePost, $mockResponseInterfaceGet, $mockResponseInterfaceGet);
 
         // Mock response from getBody function call
         $mockStreamInterfaceGet = $this->createMock(StreamInterface::class);
@@ -127,13 +118,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->exactly(2))
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->once())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -142,16 +133,10 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() function
      *
-     * Ensure the function does not call retainUsers twice when theres no users on second list
+     * Ensure the function does not call removeUsersFromDeletionList twice when theres no users on second list
      */
     public function testRunNoUsersOnSecondList()
     {
-        $this->mockClient
-            ->expects($this->once())
-            ->method('post')
-            ->with($this->mockUrl, $this->mockClientPostOptions)
-            ->willReturn($this->mockResponseInterfacePost);
-
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
@@ -175,10 +160,9 @@ class ControllerTest extends TestCase
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
         $this->mockClient
-            ->expects($this->exactly(2))
-            ->method('get')
-            ->withConsecutive([$this->mockGroupUrl, $this->mockClientGetOptions], [$mockNextLink, $this->mockClientGetOptions])
-            ->willReturn($mockResponseInterfaceGet);
+            ->expects($this->exactly(3))
+            ->method('sendRequest')
+            ->willReturnOnConsecutiveCalls($this->mockResponseInterfacePost, $mockResponseInterfaceGet, $mockResponseInterfaceGet);
 
         // Mock response from getBody function call
         $mockStreamInterfaceGet = $this->createMock(StreamInterface::class);
@@ -221,13 +205,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->once())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->once())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -243,22 +227,23 @@ class ControllerTest extends TestCase
         // Expect TokenException to be thrown
         $this->expectException(TokenException::class);
 
+        $mockClientExceptionInterface = $this->createMock(ClientExceptionInterface::class);
+
         $this->mockClient
             ->expects($this->once())
-            ->method('post')
-            ->with($this->mockUrl, $this->mockClientPostOptions)
-            ->willThrowException(new TokenException('TokenException'));
+            ->method('sendRequest')
+            ->will($this->throwException($mockClientExceptionInterface));
 
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->never())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       $this->controller->run($handler);
     }
@@ -266,18 +251,12 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() and getData() function
      *
-     * Ensure RunDataException is thrown when acquiring data fails
+     * Ensure NetworkException is thrown when acquiring data fails
      */
     public function testRunDataException()
     {
         // Expect DataException to be thrown
-        $this->expectException(DataException::class);
-
-        $this->mockClient
-            ->expects($this->once())
-            ->method('post')
-            ->with($this->mockUrl, $this->mockClientPostOptions)
-            ->willReturn($this->mockResponseInterfacePost);
+        $this->expectException(NetworkException::class);
 
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
@@ -295,24 +274,26 @@ class ControllerTest extends TestCase
             ->method('getContents')
             ->willReturn($mockStringResponsePost);
 
-        // Now we need to handle the post function called in getData.
+        // Now we need to handle the post request and get request.
+
+        $mockClientExceptionInterface = $this->createMock(ClientExceptionInterface::class);
 
         $this->mockClient
-            ->expects($this->once())
-            ->method('get')
-            ->with($this->mockGroupUrl, $this->mockClientGetOptions)
-            ->willThrowException(new DataException('DataException'));
+            ->expects($this->exactly(2))
+            ->method('sendRequest')
+            ->willReturnOnConsecutiveCalls($this->mockResponseInterfacePost, $this->throwException($mockClientExceptionInterface));
 
-      $handler = $this->createMock(HandlerInterface::class);
+
+        $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -328,12 +309,6 @@ class ControllerTest extends TestCase
         // Expect DataException to be thrown
         $this->expectException(DataException::class);
 
-        $this->mockClient
-            ->expects($this->once())
-            ->method('post')
-            ->with($this->mockUrl, $this->mockClientPostOptions)
-            ->willReturn($this->mockResponseInterfacePost);
-
         // Mock response from getBody function call
         $mockStreamInterfacePost = $this->createMock(StreamInterface::class);
 
@@ -350,15 +325,14 @@ class ControllerTest extends TestCase
             ->method('getContents')
             ->willReturn($mockStringResponsePost);
 
-        // Now we need to handle the post function called in getData.
+        // Now we need to handle the post request and get request.
 
         $mockResponseInterfaceGet = $this->createMock(ResponseInterface::class);
 
         $this->mockClient
-            ->expects($this->exactly(1))
-            ->method('get')
-            ->with($this->mockGroupUrl, $this->mockClientGetOptions)
-            ->willReturn($mockResponseInterfaceGet);
+            ->expects($this->exactly(2))
+            ->method('sendRequest')
+            ->willReturnOnConsecutiveCalls($this->mockResponseInterfacePost, $mockResponseInterfaceGet);
 
         // Mock response from getBody function call
         $mockStreamInterfaceGet = $this->createMock(StreamInterface::class);
@@ -387,13 +361,13 @@ class ControllerTest extends TestCase
       $handler = $this->createMock(HandlerInterface::class);
       $handler
         ->expects($this->once())
-        ->method('start');
+        ->method('collectUsersForDeletionList');
       $handler
         ->expects($this->never())
-        ->method('retainUsers');
+        ->method('removeUsersFromDeletionList');
       $handler
         ->expects($this->never())
-        ->method('commit');
+        ->method('commitDeletionList');
 
       // Call the run function on Controller
         $this->controller->run($handler);
@@ -410,11 +384,7 @@ class ControllerTest extends TestCase
         ];
 
         // Mock Client for the Controller
-        // Add methods post and get
-        $mockClientBuilder = $this->getMockBuilder(Client::class)
-            ->addMethods(['post', 'get']);
-
-        $this->mockClient = $mockClientBuilder->getMock();
+        $this->mockClient = $this->createMock(ClientInterface::class);
     }
 
     private function setUpClientPostCallParametersAndResponse()
@@ -423,15 +393,13 @@ class ControllerTest extends TestCase
         $this->mockUrl = 'https://login.microsoftonline.com/' . $this->mockOptions['tenant_id'] . '/oauth2/v2.0/token';
 
         $this->mockClientPostOptions = [
-            'form_params' => [
-                'client_id' => $this->mockOptions['client_id'],
-                'client_secret' => $this->mockOptions['client_secret'],
-                'scope' => 'https://graph.microsoft.com/.default',
-                'grant_type' => 'client_credentials',
-            ],
+            'client_id' => $this->mockOptions['client_id'],
+            'client_secret' => $this->mockOptions['client_secret'],
+            'scope' => 'https://graph.microsoft.com/.default',
+            'grant_type' => 'client_credentials',
         ];
 
-        // Mock response from Client post function call
+        // Mock response from ClientInterface sendRequest post request
         $this->mockResponseInterfacePost = $this->createMock(ResponseInterface::class);
     }
 
@@ -440,10 +408,8 @@ class ControllerTest extends TestCase
         // Mock arguments and response for the get function call on client
         $this->mockGroupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->mockOptions['group_id'] . '/members';
 
-        $this->mockClientGetOptions = [
-            'headers' => [
-                'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
-            ],
+        $this->mockClientGetHeader = [
+            'authorization' => 'mock_token_type' . ' ' . 'mock_access_token',
         ];
     }
 }

@@ -1,6 +1,6 @@
-# Adgangsstyring
+# Azure AD Delta Sync
 
-Composer package for acquiring users in specific Azure AD group.
+Composer package for the Azure AD Delta Sync flow.
 
 ## References
 
@@ -22,8 +22,6 @@ To install this package directly run
 composer require itkdev/adgangsstyring
 ```
 
-To use the package you must use the [Guzzle HTTP client](https://docs.guzzlephp.org/en/stable/).
-
 ### Flow
 
 To start the flow one needs to call the
@@ -41,28 +39,32 @@ use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 
 class SomeHandler implements HandlerInterface
 {
-    public function start(): void
+    public function collectUsersForDeletionList(): void
     {
         // Some start logic
     }
 
-    public function retainUsers(array $users): void
+    public function removeUsersFromDeletionList(array $users): void
     {
         // Some user logic
     }
 
-    public function commit(): void
+    public function commitDeletionList(): void
     {
         // Some commit logic
     }
 }
 ```
 
-Be aware that `retainUsers()` may be called multiple times,
+Be aware that `removeUsersFromDeletionList()` may be called multiple times,
 as we are limited to 100 users per request.
 
-To start the flow provide a Guzzle `Client`
-and the required options seen beneath:
+To start the flow provide a HTTP Client that implements
+[PSR-18](https://www.php-fig.org/psr/psr-18/) `CLientInterface`,
+and the required options seen in the example beneath.
+
+Note that this example uses Guzzle HTTP Client.
+For a list of PSR-18 implementing libraries click [here](https://packagist.org/providers/psr/http-client-implementation).
 
 ```php
 

@@ -2,26 +2,42 @@
 
 namespace ItkDev\Adgangsstyring;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use Nyholm\Psr7\Request;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\NetworkException;
 use ItkDev\Adgangsstyring\Exception\TokenException;
 use ItkDev\Adgangsstyring\Handler\HandlerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Class Controller
+ *
+ * Contains the logic needed for running the Azure AD Delta Sync flow.
+ *
+ * @package ItkDev\Adgangsstyring
+ */
 class Controller
 {
+    private const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
+    private const MICROSOFT_TOKEN_SUBDIRECTORY = '/oauth2/v2.0/token';
+    private const MICROSOFT_GRAPH_GROUPS_DOMAIN = 'https://graph.microsoft.com/v1.0/groups/';
+    private const MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY = '/members';
+    private const MICROSOFT_GRAPH_SCOPE = 'https://graph.microsoft.com/.default';
+    private const MICROSOFT_GRANT_TYPE = 'client_credentials';
+
     /**
-     * @var Client
+     * @var ClientInterface
      */
-    private $client;
+    private ClientInterface $client;
 
     /**
      * @var array
      */
-    private $options;
+    private array $options;
 
-    public function __construct(Client $client, array $options)
+    public function __construct(ClientInterface $client, array $options)
     {
         $this->client = $client;
 
@@ -32,38 +48,46 @@ class Controller
     }
 
     /**
-     * @throws TokenException|DataException
+     * Runs the Azure AD Delta Sync flow.
+     *
+     * @param HandlerInterface $handler
+     *
+     * @throws TokenException|DataException|NetworkException
      */
     public function run(HandlerInterface $handler)
     {
         // Acquiring access token and token type
-        $url = 'https://login.microsoftonline.com/' . $this->options['tenant_id'] . '/oauth2/v2.0/token';
+        $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
+
+        $request = new Request('POST', $url, [], http_build_query([
+                'client_id' => $this->options['client_id'],
+                'client_secret' => $this->options['client_secret'],
+                'scope' => self::MICROSOFT_GRAPH_SCOPE,
+                'grant_type' => self::MICROSOFT_GRANT_TYPE,
+        ]));
 
         try {
-            $postResponse = $this->client->post($url, [
-                'form_params' => [
-                    'client_id' => $this->options['client_id'],
-                    'client_secret' => $this->options['client_secret'],
-                    'scope' => 'https://graph.microsoft.com/.default',
-                    'grant_type' => 'client_credentials',
-                ],
-            ]);
-        } catch (RequestException $e) {
+            $postResponse = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
             throw new TokenException('Cannot get token.', $e->getCode(), $e);
         }
 
-        $token = json_decode($postResponse->getBody()->getContents());
+        try {
+            $token = json_decode($postResponse->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
 
         // Construct group url for microsoft graph
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/' . $this->options['group_id'] . '/members';
+        $groupUrl = self::MICROSOFT_GRAPH_GROUPS_DOMAIN . $this->options['group_id'] . self::MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY;
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
-        $handler->start();
+        $handler->collectUsersForDeletionList();
 
         $totalCount = 0;
-        // Dispatch user data events containing users as long as next link exists
+        // Handle users as long as next link exists
         while (null !== $groupUrl) {
             $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
@@ -71,10 +95,9 @@ class Controller
                 $count = count($data['value']);
 
                 if (0 !== $count) {
-                    // Update total count
                     $totalCount += $count;
 
-                    $handler->retainUsers($data['value']);
+                    $handler->removeUsersFromDeletionList($data['value']);
                 }
             }
 
@@ -87,32 +110,43 @@ class Controller
             throw new DataException('No users found in group.');
         }
 
-        $handler->commit();
+        $handler->commitDeletionList();
     }
 
     /**
+     * Gets users from current url.
+     *
      * @param string $url
      * @param string $tokenType
      * @param string $accessToken
+     *
      * @return array
+     *
+     * @throws NetworkException
      * @throws DataException
      */
     private function getData(string $url, string $tokenType, string $accessToken): array
     {
+        $request = new Request('GET', $url, ['authorization' => $tokenType . ' ' . $accessToken]);
+
         try {
-            $response = $this->client->get($url, [
-                'headers' => [
-                    'authorization' => $tokenType . ' ' . $accessToken,
-                ],
-            ]);
-        } catch (RequestException $e) {
-            throw new DataException('Cannot get users.', $e->getCode(), $e);
+            $response = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
+            throw new NetworkException('Cannot get users.', $e->getCode(), $e);
         }
 
-        return json_decode($response->getBody()->getContents(), true);
+        try {
+            $data = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        return $data;
     }
 
     /**
+     * Sets required options.
+     *
      * @param OptionsResolver $resolver
      */
     public function configureOptions(OptionsResolver $resolver)
