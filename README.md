@@ -22,8 +22,6 @@ To install this package directly run
 composer require itkdev/adgangsstyring
 ```
 
-To use the package you must use the [Guzzle HTTP client](https://docs.guzzlephp.org/en/stable/).
-
 ### Flow
 
 To start the flow one needs to call the
@@ -61,8 +59,12 @@ class SomeHandler implements HandlerInterface
 Be aware that `removeUsersFromDeletionList()` may be called multiple times,
 as we are limited to 100 users per request.
 
-To start the flow provide a Guzzle `Client`
-and the required options seen beneath:
+To start the flow provide a HTTP Client that implements
+[PSR-18](https://www.php-fig.org/psr/psr-18/) `CLientInterface`,
+and the required options seen in the example beneath.
+
+Note that this example uses Guzzle HTTP Client.
+For a list of PSR-18 implementing libraries click [here](https://packagist.org/providers/psr/http-client-implementation).
 
 ```php
 

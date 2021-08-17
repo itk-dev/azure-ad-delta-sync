@@ -2,7 +2,6 @@
 
 namespace ItkDev\Adgangsstyring\Tests;
 
-use Nyholm\Psr7\Request;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use ItkDev\Adgangsstyring\Controller;
@@ -18,12 +17,8 @@ class ControllerTest extends TestCase
 {
     private $controller;
     private $mockClient;
-    private $mockClientGetHeader;
-    private $mockClientPostOptions;
-    private $mockGroupUrl;
     private $mockOptions;
     private $mockResponseInterfacePost;
-    private $mockUrl;
 
     protected function setUp(): void
     {
