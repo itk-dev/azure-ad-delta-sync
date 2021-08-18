@@ -1,6 +1,6 @@
 <?php
 
-namespace ItkDev\Adgangsstyring\Handler;
+namespace ItkDev\AzureAdDeltaSync\Handler;
 
 /**
  * Interface HandlerInterface
