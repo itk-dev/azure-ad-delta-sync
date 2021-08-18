@@ -1,6 +1,6 @@
 <?php
 
-namespace ItkDev\Adgangsstyring\Exception;
+namespace ItkDev\AzureAdDeltaSync\Exception;
 
 class DataException extends \Exception
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace ItkDev\Adgangsstyring\Handler;
+namespace ItkDev\AzureAdDeltaSync\Handler;
 
 /**
  * Interface HandlerInterface
@@ -9,7 +9,7 @@ namespace ItkDev\Adgangsstyring\Handler;
  * create a user deletion list, how to remove users from and
  * how to handle the list upon finishing the Azure AD Delta Sync flow.
  *
- * @package ItkDev\Adgangsstyring\Handler
+ * @package ItkDev\AzureAdDeltaSync\Handler
  */
 interface HandlerInterface
 {

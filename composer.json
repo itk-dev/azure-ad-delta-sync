@@ -15,12 +15,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "ItkDev\\Adgangsstyring\\": "src/"
+            "ItkDev\\AzureAdDeltaSync\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "ItkDev\\Adgangsstyring\\Tests\\": "tests/"
+            "ItkDev\\AzureAdDeltaSync\\Tests\\": "tests/"
         }
     },
     "require": {

@@ -1,14 +1,14 @@
 <?php
 
-namespace ItkDev\Adgangsstyring;
+namespace ItkDev\AzureAdDeltaSync;
 
 use Nyholm\Psr7\Request;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
-use ItkDev\Adgangsstyring\Exception\DataException;
-use ItkDev\Adgangsstyring\Exception\NetworkException;
-use ItkDev\Adgangsstyring\Exception\TokenException;
-use ItkDev\Adgangsstyring\Handler\HandlerInterface;
+use ItkDev\AzureAdDeltaSync\Exception\DataException;
+use ItkDev\AzureAdDeltaSync\Exception\NetworkException;
+use ItkDev\AzureAdDeltaSync\Exception\TokenException;
+use ItkDev\AzureAdDeltaSync\Handler\HandlerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -16,7 +16,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * Contains the logic needed for running the Azure AD Delta Sync flow.
  *
- * @package ItkDev\Adgangsstyring
+ * @package ItkDev\AzureAdDeltaSync
  */
 class Controller
 {

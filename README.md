@@ -35,7 +35,7 @@ Therefore, you must create your own handler that implements
 ```php
 <?php
 
-use ItkDev\Adgangsstyring\Handler\HandlerInterface;
+use ItkDev\AzureAdDeltaSync\Handler\HandlerInterface;
 
 class SomeHandler implements HandlerInterface
 {
@@ -69,7 +69,7 @@ For a list of PSR-18 implementing libraries click [here](https://packagist.org/p
 ```php
 
 use GuzzleHttp\Client;
-use ItkDev\Adgangsstyring\Controller;
+use ItkDev\AzureAdDeltaSync\Controller;
 
 
 $options = [
@@ -171,7 +171,7 @@ act -P ubuntu-latest=shivammathur/node:focal pull_request --job phpcsfixer
 
 We use [SemVer](http://semver.org/) for versioning.
 For the versions available, see the
-[tags on this repository](https://github.com/itk-dev/adgangsstyring/tags).
+[tags on this repository](https://github.com/itk-dev/azure-ad-delta-sync/tags).
 
 ## License
 
