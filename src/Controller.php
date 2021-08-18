@@ -2,74 +2,155 @@
 
 namespace ItkDev\Adgangsstyring;
 
-use GuzzleHttp\Client;
-use ItkDev\Adgangsstyring\Event\CommitEvent;
-use ItkDev\Adgangsstyring\Event\StartEvent;
-use ItkDev\Adgangsstyring\Event\UserDataEvent;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Nyholm\Psr7\Request;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use ItkDev\Adgangsstyring\Exception\DataException;
+use ItkDev\Adgangsstyring\Exception\NetworkException;
+use ItkDev\Adgangsstyring\Exception\TokenException;
+use ItkDev\Adgangsstyring\Handler\HandlerInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * Class Controller
+ *
+ * Contains the logic needed for running the Azure AD Delta Sync flow.
+ *
+ * @package ItkDev\Adgangsstyring
+ */
 class Controller
 {
-    private $tenantId;
-    private $clientId;
-    private $clientSecret;
-    private $groupId;
-    private $client;
-    private $eventDispatcher;
+    private const MICROSOFT_LOGIN_DOMAIN = 'https://login.microsoftonline.com/';
+    private const MICROSOFT_TOKEN_SUBDIRECTORY = '/oauth2/v2.0/token';
+    private const MICROSOFT_GRAPH_GROUPS_DOMAIN = 'https://graph.microsoft.com/v1.0/groups/';
+    private const MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY = '/members';
+    private const MICROSOFT_GRAPH_SCOPE = 'https://graph.microsoft.com/.default';
+    private const MICROSOFT_GRANT_TYPE = 'client_credentials';
 
-    public function __construct(EventDispatcherInterface $eventDispatcher, array $options)
+    /**
+     * @var ClientInterface
+     */
+    private ClientInterface $client;
+
+    /**
+     * @var array
+     */
+    private array $options;
+
+    public function __construct(ClientInterface $client, array $options)
     {
-        $this->eventDispatcher = $eventDispatcher;
-        $this->tenantId = $options['tenantId'];
-        $this->clientId = $options['clientId'];
-        $this->clientSecret = $options['clientSecret'];
-        $this->groupId = $options['groupId'];
+        $this->client = $client;
+
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+
+        $this->options = $resolver->resolve($options);
     }
 
-    public function run()
+    /**
+     * Runs the Azure AD Delta Sync flow.
+     *
+     * @param HandlerInterface $handler
+     *
+     * @throws TokenException|DataException|NetworkException
+     */
+    public function run(HandlerInterface $handler)
     {
-        $this->client = new Client();
-        $url = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/token?api-version=1.0';
-        $token = json_decode($this->client->post($url, [
-            'form_params' => [
-                'client_id' => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'resource' => 'https://graph.microsoft.com/',
-                'grant_type' => 'client_credentials',
-            ],
-        ])->getBody()->getContents());
+        // Acquiring access token and token type
+        $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
 
-        $groupUrl = 'https://graph.microsoft.com/v1.0/groups/'.$this->groupId.'/members';
+        $request = new Request('POST', $url, [], http_build_query([
+                'client_id' => $this->options['client_id'],
+                'client_secret' => $this->options['client_secret'],
+                'scope' => self::MICROSOFT_GRAPH_SCOPE,
+                'grant_type' => self::MICROSOFT_GRANT_TYPE,
+        ]));
+
+        try {
+            $postResponse = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
+            throw new TokenException('Cannot get token.', $e->getCode(), $e);
+        }
+
+        try {
+            $token = json_decode($postResponse->getBody()->getContents(), false, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        // Construct group url for microsoft graph
+        $groupUrl = self::MICROSOFT_GRAPH_GROUPS_DOMAIN . $this->options['group_id'] . self::MICROSOFT_GRAPH_GROUPS_MEMBERS_SUBDIRECTORY;
 
         $tokenType = $token->token_type;
         $accessToken = $token->access_token;
 
-        $startEvent = new StartEvent();
-        $this->eventDispatcher->dispatch($startEvent);
+        $handler->collectUsersForDeletionList();
 
-        $data = $this->getData($groupUrl, $tokenType, $accessToken);
+        $totalCount = 0;
+        // Handle users as long as next link exists
+        while (null !== $groupUrl) {
+            $data = $this->getData($groupUrl, $tokenType, $accessToken);
 
-        while (array_key_exists('@odata.nextLink', $data)){
-            // Fjern slettemarkering på disse brugere
-            $event = new UserDataEvent($data['value']);
+            if (array_key_exists('value', $data)) {
+                $count = count($data['value']);
 
-            $this->eventDispatcher->dispatch($event);
+                if (0 !== $count) {
+                    $totalCount += $count;
 
-            $data = $this->getData($data['@odata.nextLink'], $tokenType, $accessToken);
+                    $handler->removeUsersFromDeletionList($data['value']);
+                }
+            }
+
+            // Get next uri containing users
+            $groupUrl = $data['@odata.nextLink'] ?? null;
         }
 
-        $commitEvent = new CommitEvent();
-        $this->eventDispatcher->dispatch($commitEvent);
+        // Throw DataException if no users in group
+        if (0 === $totalCount) {
+            throw new DataException('No users found in group.');
+        }
+
+        $handler->commitDeletionList();
     }
 
-    private function getData(string $url, string $tokenType, string $accessToken)
+    /**
+     * Gets users from current url.
+     *
+     * @param string $url
+     * @param string $tokenType
+     * @param string $accessToken
+     *
+     * @return array
+     *
+     * @throws NetworkException
+     * @throws DataException
+     */
+    private function getData(string $url, string $tokenType, string $accessToken): array
     {
-        $response = $this->client->get($url, [
-            'headers' => [
-                'authorization' => $tokenType.' '.$accessToken,
-            ],
-        ]);
+        $request = new Request('GET', $url, ['authorization' => $tokenType . ' ' . $accessToken]);
 
-        return json_decode($response->getBody()->getContents(), true);
+        try {
+            $response = $this->client->sendRequest($request);
+        } catch (ClientExceptionInterface $e) {
+            throw new NetworkException('Cannot get users.', $e->getCode(), $e);
+        }
+
+        try {
+            $data = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new DataException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Sets required options.
+     *
+     * @param OptionsResolver $resolver
+     */
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setRequired(['tenant_id', 'client_id', 'client_secret', 'group_id']);
     }
 }

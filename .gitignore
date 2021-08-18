@@ -1,3 +1,8 @@
 /vendor/
 
 /.idea/
+
+.phpcs-cache
+phpcs-report.xml
+/composer.lock
+/node_modules
