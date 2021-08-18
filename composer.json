@@ -26,12 +26,12 @@
     "require": {
         "php": "^7.4",
         "ext-json": "*",
-        "escapestudios/symfony2-coding-standard": "^3.12",
         "symfony/options-resolver": "^4.4 || ^5.0",
         "psr/http-client": "^1.0",
         "nyholm/psr7": "^1.4"
     },
     "require-dev": {
+        "escapestudios/symfony2-coding-standard": "^3.12",
         "phpunit/phpunit": "^9",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
     },
