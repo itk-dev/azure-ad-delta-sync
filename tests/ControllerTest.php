@@ -1,14 +1,14 @@
 <?php
 
-namespace ItkDev\Adgangsstyring\Tests;
+namespace ItkDev\AzureAdDeltaSync\Tests;
 
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
-use ItkDev\Adgangsstyring\Controller;
-use ItkDev\Adgangsstyring\Exception\DataException;
-use ItkDev\Adgangsstyring\Exception\NetworkException;
-use ItkDev\Adgangsstyring\Exception\TokenException;
-use ItkDev\Adgangsstyring\Handler\HandlerInterface;
+use ItkDev\AzureAdDeltaSync\Controller;
+use ItkDev\AzureAdDeltaSync\Exception\DataException;
+use ItkDev\AzureAdDeltaSync\Exception\NetworkException;
+use ItkDev\AzureAdDeltaSync\Exception\TokenException;
+use ItkDev\AzureAdDeltaSync\Handler\HandlerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
