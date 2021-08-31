@@ -4,12 +4,16 @@ jobs:
   test-composer-files:
     name: Validate composer
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: [ '7.4', '8.0' ]
+        dependency-version: [ prefer-lowest, prefer-stable ]
     steps:
       - uses: actions/checkout@master
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: ${{ matrix.php-versions }}
           extensions: json
           coverage: none
           tools: composer:v2
@@ -26,6 +30,9 @@ jobs:
       - name: Validate composer files
         run: |
           composer validate composer.json --strict
+      - name: Ensure dependencies resolve
+        run: |
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
 
   php-check-coding-standards:
     name: PHP - Check Coding Standards
