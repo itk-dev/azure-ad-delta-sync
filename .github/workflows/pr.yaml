@@ -4,12 +4,16 @@ jobs:
   test-composer-files:
     name: Validate composer
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: [ '7.4', '8.0' ]
+        dependency-version: [ prefer-lowest, prefer-stable ]
     steps:
       - uses: actions/checkout@master
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 7.4
+          php-version: ${{ matrix.php-versions }}
           extensions: json
           coverage: none
           tools: composer:v2
@@ -26,6 +30,9 @@ jobs:
       - name: Validate composer files
         run: |
           composer validate composer.json --strict
+      - name: Ensure dependencies resolve
+        run: |
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
 
   php-check-coding-standards:
     name: PHP - Check Coding Standards
@@ -55,3 +62,55 @@ jobs:
       - name: PHPCS
         run: |
           composer check-coding-standards
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.4
+          extensions: json
+          coverage: none
+          tools: composer:v2
+      # https://github.com/shivammathur/setup-php#cache-composer-dependencies
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install Dependencies
+        run: |
+          composer install --no-interaction --no-progress
+      - name: Unit tests
+        run: php vendor/bin/phpunit tests --coverage-clover=coverage/unit.xml
+
+  markdownlint:
+    name: markdownlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache yarn packages
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Yarn install
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: yarn install
+      - name: markdownlint
+        run: yarn markdownlint README.md
