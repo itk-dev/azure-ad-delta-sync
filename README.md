@@ -119,31 +119,33 @@ docker compose exec phpfpm ./vendor/bin/phpunit tests
 The test suite uses [Mocks](https://phpunit.de/manual/6.5/en/test-doubles.html)
 for generation of test doubles.
 
-### Check Coding Standard
+### Coding Standard
 
-**PHP files (PHP_CodeSniffer)**
+#### PHP files (PHP_CodeSniffer)
+
+Check PHP coding standards
 
 ```shell
 docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
 docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-check
 ```
 
-**Markdown files**
+Apply coding standard changes
+
+```shell
+docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-apply
+```
+
+#### Markdown files
+
+Check markdown coding standards
 
 ```shell
 docker compose run --rm node yarn install
 docker compose run --rm node yarn coding-standards-check
 ```
 
-### Apply Coding Standards
-
-**PHP files (PHP_CodeSniffer)**
-
-```shell
-docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-apply
-```
-
-**Markdown files**
+Apply markdown coding standards
 
 ```shell
 docker compose run --rm node yarn install
