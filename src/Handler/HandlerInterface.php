@@ -6,7 +6,7 @@ namespace ItkDev\AzureAdDeltaSync\Handler;
  * Interface HandlerInterface
  *
  * Interface allowing users to implement how to handle
- * create a user deletion list, how to remove users from and
+ * creation of a user deletion list, how to remove users from the list and
  * how to handle the list upon finishing the Azure AD Delta Sync flow.
  *
  * @package ItkDev\AzureAdDeltaSync\Handler
