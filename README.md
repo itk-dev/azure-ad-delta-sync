@@ -99,7 +99,7 @@ that every single user should be deleted.
 
 ## Development Setup
 
-A `docker-compose.yml` file with a PHP 7.4 image is included in this project.
+A `docker-compose.yml` file with a PHP 8.1 image is included in this project.
 To install the dependencies you can run
 
 ```shell
@@ -121,18 +121,34 @@ for generation of test doubles.
 
 ### Check Coding Standard
 
-* PHP files (PHP_CodeSniffer)
+**PHP files (PHP_CodeSniffer)**
 
-    ```shell
-    docker compose exec phpfpm composer check-coding-standards
-    ```
+```shell
+docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
+docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-check
+```
 
-* Markdown files (markdownlint standard rules)
+**Markdown files**
 
-    ```shell
-    docker run -v ${PWD}:/app itkdev/yarn:latest install
-    docker run -v ${PWD}:/app itkdev/yarn:latest check-coding-standards
-    ```
+```shell
+docker compose run --rm node yarn install
+docker compose run --rm node yarn coding-standards-check
+```
+
+### Apply Coding Standards
+
+**PHP files (PHP_CodeSniffer)**
+
+```shell
+docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-apply
+```
+
+**Markdown files**
+
+```shell
+docker compose run --rm node yarn install
+docker compose run --rm node yarn coding-standards-apply
+```
 
 ### GitHub Actions
 
@@ -151,21 +167,6 @@ individual workflow jobs that can be run, e.g.
 ```sh
 act -P ubuntu-latest=shivammathur/node:focal pull_request --job phpcsfixer
 ```
-
-### Apply Coding Standards
-
-* PHP files (PHP_CodeSniffer)
-
-    ```shell
-    docker compose exec phpfpm composer apply-coding-standards
-    ```
-
-* Markdown files (markdownlint standard rules)
-
-    ```shell
-    docker run -v ${PWD}:/app itkdev/yarn:latest install
-    docker run -v ${PWD}:/app itkdev/yarn:latest apply-coding-standards
-    ```
 
 ## Versioning
 
