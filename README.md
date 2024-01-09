@@ -11,8 +11,8 @@ Composer package for the Azure AD Delta Sync flow.
 If you are looking to use this in a Symfony or Drupal project you should use
 either:
 
-* Symfony: [itk-dev/azure-ad-delta-sync-bundle](https://github.com/itk-dev/azure-ad-delta-sync-bundle)
-* Drupal: [itk-dev/azure_ad_delta_sync](https://github.com/itk-dev/azure_ad_delta_sync)
+* Symfony: [itk-dev/azure-ad-delta-sync-symfony](https://github.com/itk-dev/azure-ad-delta-sync-symfony)
+* Drupal: [itk-dev/azure-ad-delta-sync-drupal](https://github.com/itk-dev/azure-ad-delta-sync-drupal)
 
 ### Direct installation
 
@@ -99,10 +99,11 @@ that every single user should be deleted.
 
 ## Development Setup
 
-A `docker-compose.yml` file with a PHP 8.1 image is included in this project.
+A `docker-compose.yml` file with a PHP 8.2 image is included in this project.
 To install the dependencies you can run
 
 ```shell
+docker compose pull
 docker compose up -d
 docker compose exec phpfpm composer install
 ```
@@ -126,14 +127,14 @@ for generation of test doubles.
 Check PHP coding standards
 
 ```shell
-docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
-docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-check
+docker compose run --rm phpfpm composer install
+docker compose run --rm phpfpm composer coding-standards-check
 ```
 
 Apply coding standard changes
 
 ```shell
-docker run --interactive --tty --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-apply
+docker compose run --rm phpfpm composer coding-standards-apply
 ```
 
 #### Markdown files
