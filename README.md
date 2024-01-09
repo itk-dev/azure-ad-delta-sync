@@ -11,8 +11,8 @@ Composer package for the Azure AD Delta Sync flow.
 If you are looking to use this in a Symfony or Drupal project you should use
 either:
 
-* Symfony: [itk-dev/adgangsstyring-bundle](https://github.com/itk-dev/adgangsstyring-bundle)
-* Drupal: [itk-dev/adgangsstyring_drupal](https://github.com/itk-dev/adgangsstyring_drupal)
+* Symfony: [itk-dev/azure-ad-delta-sync-bundle](https://github.com/itk-dev/azure-ad-delta-sync-bundle)
+* Drupal: [itk-dev/azure_ad_delta_sync](https://github.com/itk-dev/azure_ad_delta_sync)
 
 ### Direct installation
 
