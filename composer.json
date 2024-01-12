@@ -24,9 +24,9 @@
         }
     },
     "require": {
-        "php": "^7.4 || ^8.0",
+        "php": "^8.1",
         "ext-json": "*",
-        "symfony/options-resolver": "^4.4 || ^5.0",
+        "symfony/options-resolver": "^5.4 || ^6.0",
         "psr/http-client": "^1.0",
         "nyholm/psr7": "^1.4"
     },
@@ -36,10 +36,10 @@
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
     },
     "scripts": {
-        "check-coding-standards": [
+        "coding-standards-check": [
             "vendor/bin/phpcs --standard=phpcs.xml.dist"
         ],
-        "apply-coding-standards": [
+        "coding-standards-apply": [
             "vendor/bin/phpcbf --standard=phpcs.xml.dist"
         ],
         "install-codestandards": [
@@ -48,5 +48,10 @@
         "post-install-cmd": [
             "@install-codestandards"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

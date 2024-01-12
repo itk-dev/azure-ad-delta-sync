@@ -32,12 +32,7 @@ class Controller
      */
     private ClientInterface $client;
 
-    /**
-     * @var array
-     */
-    private array $options;
-
-    public function __construct(ClientInterface $client, array $options)
+    public function __construct(ClientInterface $client, private array $options)
     {
         $this->client = $client;
 
@@ -54,7 +49,7 @@ class Controller
      *
      * @throws TokenException|DataException|NetworkException
      */
-    public function run(HandlerInterface $handler)
+    public function run(HandlerInterface $handler): void
     {
         // Acquiring access token and token type
         $url =  self::MICROSOFT_LOGIN_DOMAIN . $this->options['tenant_id'] . self::MICROSOFT_TOKEN_SUBDIRECTORY;
@@ -149,7 +144,7 @@ class Controller
      *
      * @param OptionsResolver $resolver
      */
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setRequired(['tenant_id', 'client_id', 'client_secret', 'group_id']);
     }

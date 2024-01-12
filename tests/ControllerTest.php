@@ -133,7 +133,7 @@ class ControllerTest extends TestCase
     /**
      * Testing the Controller run() function
      *
-     * Ensure the function does not call removeUsersFromDeletionList twice when theres no users on second list
+     * Ensure the function does not call removeUsersFromDeletionList twice when there are no users on second list
      */
     public function testRunNoUsersOnSecondList()
     {

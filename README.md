@@ -11,8 +11,8 @@ Composer package for the Azure AD Delta Sync flow.
 If you are looking to use this in a Symfony or Drupal project you should use
 either:
 
-* Symfony: [itk-dev/adgangsstyring-bundle](https://github.com/itk-dev/adgangsstyring-bundle)
-* Drupal: [itk-dev/adgangsstyring_drupal](https://github.com/itk-dev/adgangsstyring_drupal)
+* Symfony: [itk-dev/azure-ad-delta-sync-symfony](https://github.com/itk-dev/azure-ad-delta-sync-symfony)
+* Drupal: [itk-dev/azure-ad-delta-sync-drupal](https://github.com/itk-dev/azure-ad-delta-sync-drupal)
 
 ### Direct installation
 
@@ -99,10 +99,11 @@ that every single user should be deleted.
 
 ## Development Setup
 
-A `docker-compose.yml` file with a PHP 7.4 image is included in this project.
+A `docker-compose.yml` file with a PHP 8.2 image is included in this project.
 To install the dependencies you can run
 
 ```shell
+docker compose pull
 docker compose up -d
 docker compose exec phpfpm composer install
 ```
@@ -119,20 +120,38 @@ docker compose exec phpfpm ./vendor/bin/phpunit tests
 The test suite uses [Mocks](https://phpunit.de/manual/6.5/en/test-doubles.html)
 for generation of test doubles.
 
-### Check Coding Standard
+### Coding Standard
 
-* PHP files (PHP_CodeSniffer)
+#### PHP files (PHP_CodeSniffer)
 
-    ```shell
-    docker compose exec phpfpm composer check-coding-standards
-    ```
+Check PHP coding standards
 
-* Markdown files (markdownlint standard rules)
+```shell
+docker compose run --rm phpfpm composer install
+docker compose run --rm phpfpm composer coding-standards-check
+```
 
-    ```shell
-    docker run -v ${PWD}:/app itkdev/yarn:latest install
-    docker run -v ${PWD}:/app itkdev/yarn:latest check-coding-standards
-    ```
+Apply coding standard changes
+
+```shell
+docker compose run --rm phpfpm composer coding-standards-apply
+```
+
+#### Markdown files
+
+Check markdown coding standards
+
+```shell
+docker compose run --rm node yarn install
+docker compose run --rm node yarn coding-standards-check
+```
+
+Apply markdown coding standards
+
+```shell
+docker compose run --rm node yarn install
+docker compose run --rm node yarn coding-standards-apply
+```
 
 ### GitHub Actions
 
@@ -151,21 +170,6 @@ individual workflow jobs that can be run, e.g.
 ```sh
 act -P ubuntu-latest=shivammathur/node:focal pull_request --job phpcsfixer
 ```
-
-### Apply Coding Standards
-
-* PHP files (PHP_CodeSniffer)
-
-    ```shell
-    docker compose exec phpfpm composer apply-coding-standards
-    ```
-
-* Markdown files (markdownlint standard rules)
-
-    ```shell
-    docker run -v ${PWD}:/app itkdev/yarn:latest install
-    docker run -v ${PWD}:/app itkdev/yarn:latest apply-coding-standards
-    ```
 
 ## Versioning
 
